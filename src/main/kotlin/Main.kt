@@ -17,7 +17,7 @@ import androidx.compose.ui.window.rememberWindowState
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Compose for Desktop",
+        title = "Valoknite",
         state = rememberWindowState(width = 300.dp, height = 300.dp)
     ) {
         val count = remember { mutableStateOf(0) }
