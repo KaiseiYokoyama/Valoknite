@@ -66,8 +66,8 @@ class Collection(
                 .map { it.getOrThrow() }
         )
 
-        if (mediaList.isEmpty()) {
-            // メディアを持たないコレクションを拒絶
+        if (mediaList.isEmpty() && subCollections.isEmpty()) {
+            // メディアおよびコレクションを持たないコレクションを拒絶
             throw NoMediaCollectionException(dir)
         }
     }
