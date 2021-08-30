@@ -14,6 +14,7 @@ class Viewer(collection: Collection) {
         var dirPath: Path?
         val dialog = JFileChooser().apply {
             fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+            dialogTitle = "Open"
         }
 
         do {
