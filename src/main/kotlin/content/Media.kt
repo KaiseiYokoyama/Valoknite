@@ -2,9 +2,14 @@ package content
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.imageFromResource
+import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.useResource
 import java.nio.file.Path
 import kotlin.io.path.extension
+import kotlin.io.path.readBytes
 
 /**
  * 表示対象となるファイル。写真、動画など。
@@ -45,8 +50,10 @@ class ImageMedia constructor(file: Path) : Media(file) {
 
     @Composable
     override fun view() {
+        println(file.toString())
+        val asset = org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()).asImageBitmap()
         Image(
-            painter = painterResource(file.toString()),
+            asset,
             contentDescription = file.fileName.let { it.toString() },
         )
     }
