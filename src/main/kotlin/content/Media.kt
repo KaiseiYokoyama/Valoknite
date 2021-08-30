@@ -2,11 +2,8 @@ package content
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.imageFromResource
-import androidx.compose.ui.res.loadImageBitmap
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.useResource
 import java.nio.file.Path
 import kotlin.io.path.extension
 import kotlin.io.path.readBytes

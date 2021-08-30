@@ -1,19 +1,16 @@
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.Divider
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
-import androidx.compose.runtime.Composable
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.nio.file.Path
 import javax.swing.JFileChooser
 import content.Collection
 import content.Content
-import content.Media
 import kotlin.properties.Delegates
 
 /**
@@ -51,7 +48,7 @@ class Viewer(collection: Collection) {
         /**
          * 現在表示中のコンテンツ
          */
-        fun now() = get(index)
+        fun now() = get(index)!!
 
         /**
          * 前のコンテンツ
