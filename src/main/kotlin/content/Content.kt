@@ -1,6 +1,7 @@
 package content
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -42,9 +43,9 @@ abstract class Content(
      */
     @Composable
     fun viewAsThumbnail() {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+        Column (
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // サムネイルアイコン
             thumbIcon()
