@@ -6,6 +6,7 @@ import androidx.compose.ui.Alignment
 import media.Media
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
 /**
@@ -43,7 +44,7 @@ class Collection(
         }
 
         subCollections = ArrayList(
-            dir.toList()
+            dir.listDirectoryEntries()
                 // ディレクトリ内のエントリを全部コレクションにしてみる
                 // ディレクトリでないエントリは当然エラーを返す
                 .map { kotlin.runCatching { Collection(it) } }
@@ -54,7 +55,8 @@ class Collection(
         )
 
         mediaList = ArrayList(
-            dir.toList()
+            dir.listDirectoryEntries()
+                .map { println(it); return@map it }
                 // ディレクトリ内のエントリを全部メディアにしてみる
                 // メディアでないエントリは当然エラーを返す
                 .map { kotlin.runCatching { Media.build(it) } }
