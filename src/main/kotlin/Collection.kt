@@ -73,6 +73,18 @@ class Collection(
     }
 
     /**
+     * サムネイル画像
+     */
+    @Composable
+    fun thumbnailImage() {
+        if (mediaList.isNotEmpty()) {
+            mediaList[0].view()
+        } else {
+            subCollections[0].thumbnailImage()
+        }
+    }
+
+    /**
      * サムネイル表示
      */
     @Composable
@@ -81,8 +93,8 @@ class Collection(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            // プレビュー表示
-            mediaList[0].view()
+            // サムネイル画像
+            thumbnailImage()
             // フォルダ名
             Text(name)
         }
