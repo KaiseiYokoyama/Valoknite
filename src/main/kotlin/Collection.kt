@@ -56,7 +56,6 @@ class Collection(
 
         mediaList = ArrayList(
             dir.listDirectoryEntries()
-                .map { println(it); return@map it }
                 // ディレクトリ内のエントリを全部メディアにしてみる
                 // メディアでないエントリは当然エラーを返す
                 .map { kotlin.runCatching { Media.build(it) } }

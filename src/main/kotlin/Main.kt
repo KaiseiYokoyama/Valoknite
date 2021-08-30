@@ -21,6 +21,7 @@ fun main() = application {
         state = rememberWindowState(width = 300.dp, height = 300.dp)
     ) {
         val count = remember { mutableStateOf(0) }
+        val viewer = remember { mutableStateOf(Viewer(this.window)) }
         MaterialTheme {
             Column(Modifier.fillMaxSize(), Arrangement.spacedBy(5.dp)) {
                 Button(modifier = Modifier.align(Alignment.CenterHorizontally),
