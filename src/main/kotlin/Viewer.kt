@@ -1,5 +1,8 @@
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -7,7 +10,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
@@ -28,7 +30,7 @@ class Viewer(collection: Collection) {
         /**
          * 表示中のコレクションに含まれるコンテンツの一覧
          */
-        val media: List<Content> = collection.subContents
+        val contents: List<Content> = collection.subContents
             .toList()
 
         /**
@@ -39,11 +41,11 @@ class Viewer(collection: Collection) {
         /**
          * `idx`番目のコンテンツ
          */
-        fun get(idx: Int) = if (idx < 0 || media.size <= idx) {
+        fun get(idx: Int) = if (idx < 0 || contents.size <= idx) {
             null
         } else {
             index = idx
-            media[index]
+            contents[index]
         }
 
         /**
@@ -134,41 +136,40 @@ class Viewer(collection: Collection) {
             )
 
             // stateに従い画像を表示
-            Box(
-                Modifier.pointerMoveFilter(onMove = {
-                    mousePosition = it
-                    false
-                }).clickable {
-                    val width = size.width.dp
-                    if (mousePosition.x.dp < width / 4) {
-                        state.prev()?.let {
-                            content = it
-                        }
-                    } else if (width * 3 / 4 < mousePosition.x.dp) {
-                        state.next()?.let {
-                            content = it
-                        }
-                    }
-                }
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                content.view()
-            }
-
-            // 同一コンテンツ内のメディアを一斉表示
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.Center,
-//                modifier = Modifier.horizontalScroll(rememberScrollState())
-//            ) {
-//                state.media.forEach {
-//                    Box(Modifier.padding(16.dp)) {
-//                        it.view()
+//            Box(
+//                Modifier.pointerMoveFilter(onMove = {
+//                    mousePosition = it
+//                    false
+//                }).clickable {
+//                    val width = size.width.dp
+//                    if (mousePosition.x.dp < width / 4) {
+//                        state.prev()?.let {
+//                            content = it
+//                        }
+//                    } else if (width * 3 / 4 < mousePosition.x.dp) {
+//                        state.next()?.let {
+//                            content = it
+//                        }
 //                    }
 //                }
+//                    .fillMaxWidth()
+//                    .fillMaxHeight(),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                content.view()
 //            }
+
+            // 同一コンテンツ内のメディアを一斉表示
+            LazyRow(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                items(state.contents) { content ->
+                    Box(Modifier.padding(16.dp)) {
+                        content.view()
+                    }
+                }
+            }
         }
     }
 }
