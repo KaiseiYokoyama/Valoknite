@@ -19,6 +19,7 @@ import java.nio.file.Path
 import javax.swing.JFileChooser
 import content.Collection
 import content.Content
+import content.Media
 import kotlin.properties.Delegates
 
 /**
@@ -164,9 +165,15 @@ class Viewer(collection: Collection) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
-                items(state.contents) { content ->
+                items(focusOn.subCollections) { item: Collection ->
                     Box(Modifier.padding(16.dp)) {
-                        content.view()
+                        item.view()
+                    }
+                }
+
+                items(focusOn.mediaList) { item: Media ->
+                    Box(Modifier.padding(16.dp)) {
+                        item.view()
                     }
                 }
             }

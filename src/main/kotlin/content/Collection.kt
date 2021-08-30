@@ -20,9 +20,25 @@ class Collection(
     dir: Path
 ) : Content(dir) {
     /**
+     * 内包するコレクションの一覧
+     */
+    val subCollections: ArrayList<Collection>
+    /**
+     * 内包するメディアの一覧
+     */
+    val mediaList: ArrayList<Media>
+
+    /**
      * 内包するコンテンツの一覧
      */
-    val subContents: ArrayList<Content> = arrayListOf()
+    val subContents: ArrayList<Content>
+        get() {
+            val arrayList = arrayListOf<Content>()
+            arrayList.addAll(subCollections)
+            arrayList.addAll(mediaList)
+
+            return arrayList
+        }
 
     init {
         // `dir`がディレクトリ以外のものを指しているとき
@@ -31,18 +47,16 @@ class Collection(
             throw CollectionLoadException(dir)
         }
 
-        subContents.addAll(
-            dir.listDirectoryEntries()
-                // ディレクトリ内のエントリを全部コレクションにしてみる
-                // ディレクトリでないエントリは当然エラーを返す
-                .map { kotlin.runCatching { Collection(it) } }
-                // コレクションにならなかったものを除外
-                .filter { it.isSuccess }
-                // unwrap
-                .map { it.getOrThrow() }
-        )
+        subCollections = ArrayList(dir.listDirectoryEntries()
+            // ディレクトリ内のエントリを全部コレクションにしてみる
+            // ディレクトリでないエントリは当然エラーを返す
+            .map { kotlin.runCatching { Collection(it) } }
+            // コレクションにならなかったものを除外
+            .filter { it.isSuccess }
+            // unwrap
+            .map { it.getOrThrow() })
 
-        subContents.addAll(
+        mediaList = ArrayList(
             dir.listDirectoryEntries()
                 // ディレクトリ内のエントリを全部メディアにしてみる
                 // メディアでないエントリは当然エラーを返す
