@@ -23,20 +23,21 @@ fun main() = application {
         val count = remember { mutableStateOf(0) }
         val viewer = remember { mutableStateOf(Viewer(this.window)) }
         MaterialTheme {
-            Column(Modifier.fillMaxSize(), Arrangement.spacedBy(5.dp)) {
-                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = {
-                        count.value++
-                    }) {
-                    Text(if (count.value == 0) "Hello World" else "Clicked ${count.value}!")
-                }
-                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = {
-                        count.value = 0
-                    }) {
-                    Text("Reset")
-                }
-            }
+//            Column(Modifier.fillMaxSize(), Arrangement.spacedBy(5.dp)) {
+//                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
+//                    onClick = {
+//                        count.value++
+//                    }) {
+//                    Text(if (count.value == 0) "Hello World" else "Clicked ${count.value}!")
+//                }
+//                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
+//                    onClick = {
+//                        count.value = 0
+//                    }) {
+//                    Text("Reset")
+//                }
+//            }
+            viewer.component1().view()
         }
     }
 }
