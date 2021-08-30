@@ -1,10 +1,16 @@
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.nio.file.Path
@@ -31,7 +37,7 @@ class Viewer(collection: Collection) {
         private var index: Int = 0
 
         /**
-         * `idx`版目のコンテンツ
+         * `idx`番目のコンテンツ
          */
         fun get(idx: Int) = if (idx < 0 || media.size <= idx) {
             null
@@ -96,11 +102,20 @@ class Viewer(collection: Collection) {
      */
     val history: ArrayList<Collection> = arrayListOf(collection)
 
+    /**
+     * マウスの位置
+     */
+    var mousePosition: Offset = Offset(0f, 0f)
+
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     fun view() {
-        val content = state.now()
+        var content by remember { mutableStateOf(state.now()) }
+        // viewのサイズ
+        var size by remember { mutableStateOf(IntSize.Zero) }
 
         Column(
+            Modifier.onSizeChanged { size = it },
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -120,7 +135,21 @@ class Viewer(collection: Collection) {
 
             // stateに従い画像を表示
             Box(
-                Modifier
+                Modifier.pointerMoveFilter(onMove = {
+                    mousePosition = it
+                    false
+                }).clickable {
+                    val width = size.width.dp
+                    if (mousePosition.x.dp < width / 4) {
+                        state.prev()?.let {
+                            content = it
+                        }
+                    } else if (width * 3 / 4 < mousePosition.x.dp) {
+                        state.next()?.let {
+                            content = it
+                        }
+                    }
+                }
                     .fillMaxWidth()
                     .fillMaxHeight(),
                 contentAlignment = Alignment.Center
