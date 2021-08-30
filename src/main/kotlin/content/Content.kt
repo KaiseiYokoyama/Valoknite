@@ -1,5 +1,10 @@
 package content
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import java.nio.file.Path
 import kotlin.io.path.name
 
@@ -19,4 +24,32 @@ abstract class Content(
         get() {
             return path.name
         }
+
+    /**
+     * コンテンツを表示
+     */
+    @Composable
+    abstract fun view()
+
+    /**
+     * コンテンツのサムネイルに使うアイコン
+     */
+    @Composable
+    abstract fun thumbIcon()
+
+    /**
+     * サムネイル表示
+     */
+    @Composable
+    fun viewAsThumbnail() {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            // サムネイルアイコン
+            thumbIcon()
+            // フォルダ名
+            Text(name)
+        }
+    }
 }

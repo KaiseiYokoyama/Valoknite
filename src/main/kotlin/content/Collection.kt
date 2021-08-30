@@ -2,6 +2,7 @@ package content
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,25 +19,12 @@ class Collection(
     /**
      * フォルダの所在地
      */
-    val dir: Path
-) {
+    dir: Path
+) : Content(dir) {
     /**
-     * コレクション直下に存在するコレクション
+     * 内包するコンテンツの一覧
      */
-    private val subCollections: ArrayList<Collection>
-
-    /**
-     * コレクション直下に存在するメディア
-     */
-    val mediaList: ArrayList<Media>
-
-    /**
-     * コレクション名( = フォルダ名)
-     */
-    val name: String
-        get() {
-            return dir.name
-        }
+    val subContents: ArrayList<Content> = arrayListOf()
 
     init {
         // `dir`がディレクトリ以外のものを指しているとき
@@ -45,7 +33,7 @@ class Collection(
             throw CollectionLoadException(dir)
         }
 
-        subCollections = ArrayList(
+        subContents.addAll(
             dir.listDirectoryEntries()
                 // ディレクトリ内のエントリを全部コレクションにしてみる
                 // ディレクトリでないエントリは当然エラーを返す
@@ -56,7 +44,7 @@ class Collection(
                 .map { it.getOrThrow() }
         )
 
-        mediaList = ArrayList(
+        subContents.addAll(
             dir.listDirectoryEntries()
                 // ディレクトリ内のエントリを全部メディアにしてみる
                 // メディアでないエントリは当然エラーを返す
@@ -67,38 +55,30 @@ class Collection(
                 .map { it.getOrThrow() }
         )
 
-        if (mediaList.isEmpty() && subCollections.isEmpty()) {
-            // メディアおよびコレクションを持たないコレクションを拒絶
+        if (subContents.isEmpty()) {
+            // コンテンツを持たないコレクションを拒絶
             throw NoMediaCollectionException(dir)
         }
     }
 
-    /**
-     * 画像
-     */
     @Composable
-    fun image() {
-        if (mediaList.isNotEmpty()) {
-            mediaList[0].view()
-        } else {
-            subCollections[0].image()
+    override fun view() {
+        Card {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                // サムネイルアイコン
+                thumbIcon()
+                // タイトル
+                Text(name)
+            }
         }
     }
 
-    /**
-     * サムネイル表示
-     */
     @Composable
-    fun viewAsThumbnail() {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            // サムネイル画像
-            image()
-            // フォルダ名
-            Text(name)
-        }
+    override fun thumbIcon() {
+        subContents[0].thumbIcon()
     }
 }
 

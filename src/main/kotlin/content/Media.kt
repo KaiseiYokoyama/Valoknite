@@ -10,7 +10,7 @@ import kotlin.io.path.extension
  * 表示対象となるファイル。写真、動画など。
  * コンストラクタの代わりに`Media.build()`関数を使う。
  */
-abstract class Media(val file: Path) {
+abstract class Media(val file: Path): Content(file) {
     companion object {
         /**
          * ファイルを適切なメディアのインスタンスとして扱う
@@ -23,13 +23,6 @@ abstract class Media(val file: Path) {
                 .getOrThrow()
         }
     }
-
-    /**
-     * 表示
-     * オーバーライドするメソッドにも`@Composable`をつけるのを忘れないこと
-     */
-    @Composable
-    abstract fun view()
 }
 
 /**
@@ -56,6 +49,11 @@ class ImageMedia constructor(file: Path) : Media(file) {
             painter = painterResource(file.toString()),
             contentDescription = file.fileName.let { it.toString() },
         )
+    }
+
+    @Composable
+    override fun thumbIcon() {
+        view()
     }
 }
 
