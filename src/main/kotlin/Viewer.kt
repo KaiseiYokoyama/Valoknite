@@ -19,7 +19,7 @@ class Viewer(collection: Collection) {
         do {
             // ダイアログを表示
             dialog.showOpenDialog(composeWindow)
-            dirPath = dialog.selectedFile.let {
+            dirPath = dialog.selectedFile?.let {
                 it.toPath()
             }
         } while (dirPath == null)
