@@ -1,9 +1,11 @@
+package content
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import media.Media
+import content.Media
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
@@ -26,7 +28,7 @@ class Collection(
     /**
      * コレクション直下に存在するメディア
      */
-    private val mediaList: ArrayList<Media>
+    val mediaList: ArrayList<Media>
 
     /**
      * コレクション名( = フォルダ名)
@@ -72,14 +74,14 @@ class Collection(
     }
 
     /**
-     * サムネイル画像
+     * 画像
      */
     @Composable
-    fun thumbnailImage() {
+    fun image() {
         if (mediaList.isNotEmpty()) {
             mediaList[0].view()
         } else {
-            subCollections[0].thumbnailImage()
+            subCollections[0].image()
         }
     }
 
@@ -93,7 +95,7 @@ class Collection(
             horizontalArrangement = Arrangement.Center,
         ) {
             // サムネイル画像
-            thumbnailImage()
+            image()
             // フォルダ名
             Text(name)
         }

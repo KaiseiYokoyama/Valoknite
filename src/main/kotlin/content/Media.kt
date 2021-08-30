@@ -1,4 +1,4 @@
-package media
+package content
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
