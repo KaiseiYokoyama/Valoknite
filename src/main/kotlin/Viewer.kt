@@ -1,13 +1,14 @@
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.unit.dp
 import java.nio.file.Path
 import javax.swing.JFileChooser
 import content.Collection
@@ -110,18 +111,17 @@ class Viewer(collection: Collection) {
                     Text(focusOn.name)
                 }
             )
-            Box {
-                // メディアまたはコンテンツを表示
-                focusOn.subContents[0].view()
-            }
-            Divider()
-            // 同一コンテンツ内のメディアまたはコンテンツをサムネイル表示
+            
+            // 同一コンテンツ内のメディアを一斉表示
             Row (
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.horizontalScroll(rememberScrollState())
             ) {
                 state.media.forEach {
-                    it.viewAsThumbnail()
+                    Box(Modifier.padding(16.dp)) {
+                        it.view()
+                    }
                 }
             }
         }
