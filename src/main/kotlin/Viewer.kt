@@ -98,29 +98,48 @@ class Viewer(collection: Collection) {
 
     @Composable
     fun view() {
-        Column (
+        val content = state.now()
+
+        Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // TopAppBar
             TopAppBar(
                 title = {
-                    Text(focusOn.name)
-                }
-            )
-            
-            // 同一コンテンツ内のメディアを一斉表示
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.horizontalScroll(rememberScrollState())
-            ) {
-                state.media.forEach {
-                    Box(Modifier.padding(16.dp)) {
-                        it.view()
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start,
+                    ) {
+                        Text(content.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text(focusOn.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
                     }
                 }
+            )
+
+            // stateに従い画像を表示
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                content.view()
             }
+
+            // 同一コンテンツ内のメディアを一斉表示
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.Center,
+//                modifier = Modifier.horizontalScroll(rememberScrollState())
+//            ) {
+//                state.media.forEach {
+//                    Box(Modifier.padding(16.dp)) {
+//                        it.view()
+//                    }
+//                }
+//            }
         }
     }
 }
