@@ -39,6 +39,13 @@ class ImageMedia constructor(file: Path) : Media(file) {
             arrayOf("svg", "bmp", "gif", "heif", "ico", "jpg", "jpeg", "png", "wbmp", "webp")
     }
 
+    /**
+     * 画像データ
+     */
+    private val asset: ImageBitmap by lazy {
+        org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()).asImageBitmap()
+    }
+
     init {
         if (!extensions.contains(file.extension)) {
             throw NoValidViewerException(file)
@@ -47,8 +54,6 @@ class ImageMedia constructor(file: Path) : Media(file) {
 
     @Composable
     override fun view() {
-        println(file.toString())
-        val asset = org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()).asImageBitmap()
         Image(
             asset,
             contentDescription = file.fileName.let { it.toString() },
