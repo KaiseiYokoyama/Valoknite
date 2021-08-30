@@ -11,7 +11,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "Valoknite",
-        state = rememberWindowState(width = 300.dp, height = 300.dp)
+        state = rememberWindowState(width = 800.dp, height = 600.dp)
     ) {
         val count = remember { mutableStateOf(0) }
         val viewer = remember { mutableStateOf(Viewer(this.window)) }
