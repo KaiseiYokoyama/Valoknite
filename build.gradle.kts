@@ -19,6 +19,7 @@ repositories {
 
 dependencies {
     implementation(compose.desktop.currentOs)
+    implementation(compose.materialIconsExtended)
 }
 
 tasks.withType<KotlinCompile>() {

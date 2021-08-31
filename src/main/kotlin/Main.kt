@@ -12,23 +12,9 @@ fun main() = application {
         title = "Valoknite",
         state = rememberWindowState(width = 800.dp, height = 600.dp)
     ) {
-        val viewer = remember { mutableStateOf(Viewer(this.window)) }
+        val viewerContainer = remember { mutableStateOf(ViewerContainer(this.window)) }
         MaterialTheme {
-//            Column(Modifier.fillMaxSize(), Arrangement.spacedBy(5.dp)) {
-//                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-//                    onClick = {
-//                        count.value++
-//                    }) {
-//                    Text(if (count.value == 0) "Hello World" else "Clicked ${count.value}!")
-//                }
-//                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-//                    onClick = {
-//                        count.value = 0
-//                    }) {
-//                    Text("Reset")
-//                }
-//            }
-            viewer.component1().view()
+            viewerContainer.value.view()
         }
     }
 }
