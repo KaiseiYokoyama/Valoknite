@@ -3,6 +3,7 @@ package viewer
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -40,6 +41,7 @@ class ScrollViewer(collection: Collection) : Viewer(collection) {
         val scrollState = rememberSaveable(saver = LazyListState.Saver) { scrollState }
 
         LazyRow(
+            Modifier.fillMaxSize(),
             state = scrollState,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
