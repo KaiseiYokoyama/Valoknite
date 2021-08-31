@@ -25,10 +25,10 @@ import content.Media
 import kotlin.properties.Delegates
 
 /**
- * メディアビューアの振る舞いを定義するクラス。
+ * メディアビューアのコンテナの振る舞いを定義するクラス。
  * @constructor コレクションを直接代入してインスタンス化する
  */
-class Viewer(collection: Collection) {
+class ViewerContainer(collection: Collection) {
     inner class ViewState(collection: Collection) {
         /**
          * 表示中のコレクションに含まれるコンテンツの一覧
