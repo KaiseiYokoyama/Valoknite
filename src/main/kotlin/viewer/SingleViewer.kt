@@ -1,9 +1,11 @@
 package viewer
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ViewArray
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,11 +89,20 @@ class SingleViewer(collection: Collection) : Viewer(collection) {
                         }
                     }
                 }
-                .fillMaxWidth()
-                .fillMaxHeight(),
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            // メディアを一枚ずつ表示
             content.view()
+            // FABを表示
+            FloatingActionButton(
+                onClick = {
+                    onViewerChange(ViewMode.Scroll, now())
+                },
+                Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            ) {
+                Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
+            }
         }
     }
 
