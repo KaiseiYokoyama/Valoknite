@@ -4,6 +4,10 @@ import androidx.compose.runtime.Composable
 import content.Collection
 import content.Media
 
+enum class ViewMode {
+    Single, Scroll,
+}
+
 /**
  * メディアを表示するビューアの基底クラス
  */
@@ -24,5 +28,5 @@ abstract class Viewer(collection: Collection) {
      * ビューアをcomposeする
      */
     @Composable
-    abstract fun view()
+    abstract fun view(onViewerChange: (ViewMode, Media) -> Unit)
 }

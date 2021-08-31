@@ -6,6 +6,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
@@ -22,11 +23,11 @@ class Collection(
     /**
      * 内包するコレクションの一覧
      */
-    val subCollections: ArrayList<Collection>
+    val subCollections: List<Collection>
     /**
      * 内包するメディアの一覧
      */
-    val mediaList: ArrayList<Media>
+    val mediaList: List<Media>
 
     /**
      * 内包するコンテンツの一覧
@@ -47,7 +48,7 @@ class Collection(
             throw CollectionLoadException(dir)
         }
 
-        subCollections = ArrayList(dir.listDirectoryEntries()
+        subCollections = ArrayList(Files.newDirectoryStream(dir)
             // ディレクトリ内のエントリを全部コレクションにしてみる
             // ディレクトリでないエントリは当然エラーを返す
             .map { kotlin.runCatching { Collection(it) } }
@@ -56,16 +57,14 @@ class Collection(
             // unwrap
             .map { it.getOrThrow() })
 
-        mediaList = ArrayList(
-            dir.listDirectoryEntries()
+        mediaList = ArrayList(Files.newDirectoryStream(dir)
                 // ディレクトリ内のエントリを全部メディアにしてみる
                 // メディアでないエントリは当然エラーを返す
                 .map { kotlin.runCatching { Media.build(it) } }
                 // メディアにならなかったものを除外
                 .filter { it.isSuccess }
                 // unwrap
-                .map { it.getOrThrow() }
-        )
+                .map { it.getOrThrow() })
 
         if (subContents.isEmpty()) {
             // コンテンツを持たないコレクションを拒絶

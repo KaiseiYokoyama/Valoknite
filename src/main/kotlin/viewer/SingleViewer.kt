@@ -66,7 +66,7 @@ class SingleViewer(collection: Collection) : Viewer(collection) {
     }
 
     @Composable
-    override fun view() {
+    override fun view(onViewerChange: (ViewMode, Media) -> Unit) {
         var content by remember { mutableStateOf(now()) }
         var size by remember { mutableStateOf(IntSize.Zero) }
 

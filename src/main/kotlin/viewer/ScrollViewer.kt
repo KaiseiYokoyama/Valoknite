@@ -1,13 +1,12 @@
 package viewer
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -37,7 +36,7 @@ class ScrollViewer(collection: Collection) : Viewer(collection) {
     }
 
     @Composable
-    override fun view() {
+    override fun view(onViewerChange: (ViewMode, Media) -> Unit) {
         val scrollState = rememberSaveable(saver = LazyListState.Saver) { scrollState }
 
         LazyRow(
@@ -46,7 +45,9 @@ class ScrollViewer(collection: Collection) : Viewer(collection) {
             horizontalArrangement = Arrangement.Center,
         ) {
             items(mediaList) { item: Media ->
-                Box(Modifier.padding(16.dp)) {
+                Box(Modifier.padding(16.dp).clickable {
+                    onViewerChange(ViewMode.Single, item)
+                }) {
                     item.view()
                 }
             }
