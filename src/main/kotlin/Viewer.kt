@@ -1,9 +1,11 @@
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -31,7 +33,7 @@ class Viewer(collection: Collection) {
         /**
          * 表示中のコレクションに含まれるコンテンツの一覧
          */
-        val contents: List<Content> = collection.subContents
+        val mediaList: List<Media> = collection.mediaList
             .toList()
 
         /**
@@ -42,11 +44,11 @@ class Viewer(collection: Collection) {
         /**
          * `idx`番目のコンテンツ
          */
-        fun get(idx: Int) = if (idx < 0 || contents.size <= idx) {
+        fun get(idx: Int) = if (idx < 0 || mediaList.size <= idx) {
             null
         } else {
             index = idx
-            contents[index]
+            mediaList[index]
         }
 
         /**
@@ -114,11 +116,11 @@ class Viewer(collection: Collection) {
     @Composable
     fun view() {
         var content by remember { mutableStateOf(state.now()) }
-        // viewのサイズ
-        var size by remember { mutableStateOf(IntSize.Zero) }
+        // viewer全体のサイズ
+        var viewerSize by remember { mutableStateOf(IntSize.Zero) }
 
         Column(
-            Modifier.onSizeChanged { size = it },
+            Modifier.onSizeChanged { viewerSize = it },
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -160,20 +162,43 @@ class Viewer(collection: Collection) {
 //                content.view()
 //            }
 
-            // 同一コンテンツ内のメディアを一斉表示
-            LazyRow(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                items(focusOn.subCollections) { item: Collection ->
-                    Box(Modifier.padding(16.dp)) {
-                        item.view()
+            Row {
+                // ナビゲーションバー
+                val navWidth = 100.dp
+                Column (Modifier.width(navWidth)) {
+                    // 戻るボタン
+                    Icon(
+                        Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        Modifier.fillMaxWidth().height(navWidth * 0.5f)
+                    )
+                    // 進むボタン
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "Forward",
+                        Modifier.fillMaxWidth().height(navWidth * 0.5f)
+                    )
+                    // コレクション一覧
+                    LazyColumn(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        items(focusOn.subCollections) { collection ->
+                            Card(Modifier.padding(10.dp), elevation = 4.dp) {
+                                collection.viewAsThumbnail()
+                            }
+                        }
                     }
                 }
-
-                items(focusOn.mediaList) { item: Media ->
-                    Box(Modifier.padding(16.dp)) {
-                        item.view()
+                // 同一コンテンツ内のメディアを一斉表示
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    items(state.mediaList) { item: Media ->
+                        Box(Modifier.padding(16.dp)) {
+                            item.view()
+                        }
                     }
                 }
             }
