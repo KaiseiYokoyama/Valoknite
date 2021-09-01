@@ -2,20 +2,17 @@ package viewer
 
 import OrderBy
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ViewArray
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import content.Collection
@@ -110,8 +107,6 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                         zoom = !zoom
                     }
                 }
-//                .horizontalScroll(horizontalScrollState)
-//                .verticalScroll(verticalScrollState)
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
@@ -124,16 +119,31 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                     val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
                     val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
 
+                    val density = LocalDensity.current.run {
+                        1.dp.toPx()
+                    }
+                    val wide = (size.width.toFloat() / size.height.toFloat()
+                            > content.asset.width.toFloat() / content.asset.height.toFloat())
+                    val modifier = if (wide) {
+                        Modifier.width(size.width.dp / density)
+                            .height(
+                                size.width.dp
+                                        * (content.asset.height.toFloat() / content.asset.width.toFloat())
+                                        / density
+                            )
+                    } else {
+                        Modifier.height(size.height.dp / density)
+                            .width(
+                                size.height.dp
+                                        * (content.asset.width.toFloat() / content.asset.height.toFloat())
+                                        / density
+                            )
+                    }
                     Box(
-                        Modifier.horizontalScroll(horizontalScrollState).verticalScroll(verticalScrollState)
+                        Modifier.horizontalScroll(horizontalScrollState)
+                            .verticalScroll(verticalScrollState)
+                            .fillMaxSize()
                     ) {
-                        val modifier = if (size.width.toFloat() / size.height.toFloat()
-                            > content.asset.width.toFloat() / content.asset.height.toFloat()
-                        ) {
-                            Modifier.width(size.width.dp/2f)
-                        } else {
-                            Modifier.height(size.height.dp/2f)
-                        }
                         content.view(modifier)
                     }
                 } else {
@@ -151,5 +161,4 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
             }
         }
     }
-
 }
