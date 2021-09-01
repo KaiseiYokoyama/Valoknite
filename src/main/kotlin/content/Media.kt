@@ -7,19 +7,24 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import java.nio.file.Path
 import kotlin.io.path.extension
+import kotlin.io.path.name
 import kotlin.io.path.readBytes
 
 /**
  * 表示対象となるファイル。写真、動画など。
  * コンストラクタの代わりに`Media.build()`関数を使う。
  */
-abstract class Media(val file: Path): Content(file) {
+abstract class Media(val file: Path) : Content(file) {
     companion object {
         /**
          * ファイルを適切なメディアのインスタンスとして扱う
          * @throws NoValidViewerException ファイルに対応するメディアのクラスがない
          */
         fun build(file: Path): Media {
+            if (file.name.startsWith("._")) {
+                throw ResourceForkException(file)
+            }
+
             return kotlin.runCatching {
                 ImageMedia(file)
             }
@@ -79,3 +84,8 @@ class ImageMedia constructor(file: Path) : Media(file) {
 data class NoValidViewerException(val file: Path) : Exception() {
     val ext: String = file.extension
 }
+
+/**
+ * 例外: リソースフォークのファイル（`._hogehoge`）
+ */
+data class ResourceForkException(val file: Path) : Exception()
