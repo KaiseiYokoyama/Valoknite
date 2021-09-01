@@ -103,10 +103,16 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                     if (mousePosition.x.dp < width / 4) {
                         prev()?.let {
                             content = it
+                            // reset transform
+                            scale = 1f
+                            offset = Offset.Zero
                         }
                     } else if (width * 3 / 4 < mousePosition.x.dp) {
                         next()?.let {
                             content = it
+                            // reset transform
+                            scale = 1f
+                            offset = Offset.Zero
                         }
                     } else {
                         scale = if (scale != 1f) {
