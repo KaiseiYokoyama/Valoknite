@@ -85,8 +85,7 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
         orderBy(orderBy)
 
         var scale by remember { mutableStateOf(1f) }
-        var offsetX by remember { mutableStateOf(0f) }
-        var offsetY by remember { mutableStateOf(0f) }
+        var offset by remember { mutableStateOf(Offset.Zero) }
 
         Box(
             Modifier.onSizeChanged { size = it }
@@ -94,6 +93,11 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                     mousePosition = it
                     false
                 })
+                .pointerInput(Unit) {
+                    detectTransformGestures { centroid, pan, zoom, rotation ->
+                        offset += pan
+                    }
+                }
                 .clickable {
                     val width = size.width.dp
                     if (mousePosition.x.dp < width / 4) {
@@ -104,20 +108,10 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                         next()?.let {
                             content = it
                         }
-                    }
-                }
-                .pointerInput(Unit) {
-                    forEachGesture {
-                        awaitPointerEventScope {
-                            awaitFirstDown()
-                            do {
-                                val event = awaitPointerEvent()
-                                scale *= event.calculateZoom()
-                                val offset = event.calculatePan()
-                                offsetX += offset.x
-                                offsetY += offset.y
-                            } while (event.changes.any { it.pressed })
-                        }
+                    } else {
+                        scale = if (scale != 1f) {
+                            1f
+                        } else { 2f }
                     }
                 }
                 .fillMaxSize(),
@@ -129,8 +123,8 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                 content.view(Modifier.graphicsLayer {
                     scaleX = scale
                     scaleY = scale
-                    translationX = offsetX
-                    translationY = offsetY
+                    translationX = offset.x
+                    translationY = offset.y
                 })
             } else {
                 content.view()
