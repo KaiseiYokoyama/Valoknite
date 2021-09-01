@@ -87,81 +87,83 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
             colors = darkColors()
         ) {
             Surface {
-        Box(
-            Modifier.onSizeChanged { size = it }
-                .pointerMoveFilter(onMove = {
-                    mousePosition = it
-                    false
-                })
-                .clickable {
-                    val width = size.width.dp
-                    if (mousePosition.x.dp < width / 4) {
-                        prev()?.let {
-                            content = it
-                            // reset transform
-                            zoom = false
+                Box(
+                    Modifier.onSizeChanged { size = it }
+                        .pointerMoveFilter(onMove = {
+                            mousePosition = it
+                            false
+                        })
+                        .clickable {
+                            val width = size.width.dp
+                            if (mousePosition.x.dp < width / 4) {
+                                prev()?.let {
+                                    content = it
+                                    // reset transform
+                                    zoom = false
+                                }
+                            } else if (width * 3 / 4 < mousePosition.x.dp) {
+                                next()?.let {
+                                    content = it
+                                    // reset transform
+                                    zoom = false
+                                }
+                            } else {
+                                zoom = !zoom
+                            }
                         }
-                    } else if (width * 3 / 4 < mousePosition.x.dp) {
-                        next()?.let {
-                            content = it
-                            // reset transform
-                            zoom = false
-                        }
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // メディアを一枚ずつ表示
+                    if (!zoom) {
+                        content.view()
                     } else {
-                        zoom = !zoom
-                    }
-                }
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // メディアを一枚ずつ表示
-            if (!zoom) {
-                content.view()
-            } else {
-                val content = content
-                if (content is ImageMedia) {
-                    val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
-                    val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
+                        val content = content
+                        if (content is ImageMedia) {
+                            val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
+                            val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
 
-                    val density = LocalDensity.current.run {
-                        1.dp.toPx()
+                            val density = LocalDensity.current.run {
+                                1.dp.toPx()
+                            }
+                            val wide = (size.width.toFloat() / size.height.toFloat()
+                                    > content.asset.width.toFloat() / content.asset.height.toFloat())
+                            val modifier = if (wide) {
+                                Modifier.width(size.width.dp / density)
+                                    .height(
+                                        size.width.dp
+                                                * (content.asset.height.toFloat() / content.asset.width.toFloat())
+                                                / density
+                                    )
+                            } else {
+                                Modifier.height(size.height.dp / density)
+                                    .width(
+                                        size.height.dp
+                                                * (content.asset.width.toFloat() / content.asset.height.toFloat())
+                                                / density
+                                    )
+                            }
+                            Box(
+                                Modifier.horizontalScroll(horizontalScrollState)
+                                    .verticalScroll(verticalScrollState)
+                                    .fillMaxSize()
+                            ) {
+                                content.view(modifier)
+                            }
+                        } else {
+                            content.view()
+                        }
                     }
-                    val wide = (size.width.toFloat() / size.height.toFloat()
-                            > content.asset.width.toFloat() / content.asset.height.toFloat())
-                    val modifier = if (wide) {
-                        Modifier.width(size.width.dp / density)
-                            .height(
-                                size.width.dp
-                                        * (content.asset.height.toFloat() / content.asset.width.toFloat())
-                                        / density
-                            )
-                    } else {
-                        Modifier.height(size.height.dp / density)
-                            .width(
-                                size.height.dp
-                                        * (content.asset.width.toFloat() / content.asset.height.toFloat())
-                                        / density
-                            )
-                    }
-                    Box(
-                        Modifier.horizontalScroll(horizontalScrollState)
-                            .verticalScroll(verticalScrollState)
-                            .fillMaxSize()
+                    // FABを表示
+                    FloatingActionButton(
+                        onClick = {
+                            onViewerChange(ViewMode.Scroll, now())
+                        },
+                        Modifier.align(Alignment.BottomEnd).padding(16.dp),
                     ) {
-                        content.view(modifier)
+                        Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
                     }
-                } else {
-                    content.view()
                 }
-            }
-            // FABを表示
-            FloatingActionButton(
-                onClick = {
-                    onViewerChange(ViewMode.Scroll, now())
-                },
-                Modifier.align(Alignment.BottomEnd).padding(16.dp),
-            ) {
-                Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
             }
         }
     }
