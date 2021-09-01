@@ -1,5 +1,6 @@
 package viewer
 
+import OrderBy
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.FloatingActionButton
@@ -20,7 +21,7 @@ import content.Media
 /**
  * メディアを一つずつ表示するビューア
  */
-class SingleViewer(collection: Collection) : Viewer(collection) {
+class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection, orderBy) {
     /**
      * 表示中のメディアのインデックス
      */
@@ -67,10 +68,17 @@ class SingleViewer(collection: Collection) : Viewer(collection) {
         return true
     }
 
+    override fun orderBy(newOrderBy: OrderBy) {
+        val now = now()
+        super.orderBy(newOrderBy)
+        show(now)
+    }
+
     @Composable
-    override fun view(onViewerChange: (ViewMode, Media) -> Unit) {
+    override fun view(onViewerChange: (ViewMode, Media) -> Unit, orderBy: OrderBy) {
         var content by remember { mutableStateOf(now()) }
         var size by remember { mutableStateOf(IntSize.Zero) }
+        orderBy(orderBy)
 
         Box(
             Modifier.onSizeChanged { size = it }

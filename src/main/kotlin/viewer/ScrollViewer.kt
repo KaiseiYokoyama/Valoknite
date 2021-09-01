@@ -1,5 +1,6 @@
 package viewer
 
+import OrderBy
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +21,7 @@ import kotlinx.coroutines.*
 /**
  * メディアを一括表示するビューア
  */
-class ScrollViewer(collection: Collection) : Viewer(collection) {
+class ScrollViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection, orderBy) {
     private val scrollState = LazyListState(0, 0)
     private val coroutineScope = CoroutineScope(Job() + Dispatchers.Main)
 
@@ -36,9 +37,15 @@ class ScrollViewer(collection: Collection) : Viewer(collection) {
         return true
     }
 
+    override fun orderBy(newOrderBy: OrderBy) {
+        super.orderBy(newOrderBy)
+        // TODO: (可能なら)元の位置にスクロールしたい
+    }
+
     @Composable
-    override fun view(onViewerChange: (ViewMode, Media) -> Unit) {
+    override fun view(onViewerChange: (ViewMode, Media) -> Unit, orderBy: OrderBy) {
         val scrollState = rememberSaveable(saver = LazyListState.Saver) { scrollState }
+        orderBy(orderBy)
 
         LazyRow(
             Modifier.fillMaxSize(),

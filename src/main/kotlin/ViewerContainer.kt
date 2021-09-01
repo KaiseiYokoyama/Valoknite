@@ -4,6 +4,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -17,10 +19,13 @@ import androidx.compose.ui.unit.sp
 import java.nio.file.Path
 import javax.swing.JFileChooser
 import content.Collection
+import content.Content
 import content.Media
 import viewer.ScrollViewer
 import viewer.SingleViewer
 import viewer.ViewMode
+import kotlin.io.path.fileSize
+import kotlin.io.path.getLastModifiedTime
 import kotlin.properties.Delegates
 
 /**
@@ -54,21 +59,26 @@ class ViewerContainer(collection: Collection) {
      * 変更があった際にはstateも更新する
      */
     var focusOn: Collection by Delegates.observable(collection) { _, _, _ ->
-        singleViewer = SingleViewer(collection)
-        scrollViewer = ScrollViewer(collection)
+        singleViewer = SingleViewer(collection, orderBy)
+        scrollViewer = ScrollViewer(collection, orderBy)
     }
+
+    /**
+     * メディアの並び順
+     */
+    var orderBy: OrderBy = OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)
 
     /**
      * メディアを一つずつ表示するビューア
      * `focusOn`に変更があった時更新される
      */
-    var singleViewer: SingleViewer = SingleViewer(collection)
+    var singleViewer: SingleViewer = SingleViewer(collection, orderBy)
 
     /**
      * メディアを一括表示するビューア
      * `focusOn`に変更があった時更新される
      */
-    var scrollViewer: ScrollViewer = ScrollViewer(collection)
+    var scrollViewer: ScrollViewer = ScrollViewer(collection, orderBy)
 
     /**
      * ビューモード
@@ -84,6 +94,7 @@ class ViewerContainer(collection: Collection) {
     @Composable
     fun view() {
         var viewMode by remember { mutableStateOf(viewMode) }
+        var orderBy by remember { mutableStateOf(orderBy) }
 
         Column(
             verticalArrangement = Arrangement.Center,
@@ -100,6 +111,9 @@ class ViewerContainer(collection: Collection) {
                         Spacer(Modifier.height(4.dp))
                         Text(focusOn.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
                     }
+                },
+                actions = {
+                    orderBy.view { orderBy = it }
                 }
             )
 
@@ -133,7 +147,7 @@ class ViewerContainer(collection: Collection) {
                 }
 
                 val onViewModeChange = { newMode: ViewMode, item: Media ->
-                    val viewer = when(newMode) {
+                    val viewer = when (newMode) {
                         ViewMode.Single -> singleViewer
                         ViewMode.Scroll -> scrollViewer
                     }
@@ -142,9 +156,95 @@ class ViewerContainer(collection: Collection) {
                     }
                 }
                 when (viewMode) {
-                    ViewMode.Scroll -> scrollViewer.view(onViewModeChange)
-                    ViewMode.Single -> singleViewer.view(onViewModeChange)
+                    ViewMode.Scroll -> scrollViewer.view(onViewModeChange, orderBy)
+                    ViewMode.Single -> singleViewer.view(onViewModeChange, orderBy)
                 }
+            }
+        }
+    }
+}
+
+data class OrderBy(var order: Order, val by: By) {
+    enum class Order {
+        Ascending {
+            @Composable
+            override fun icon() {
+                Icon(Icons.Default.ArrowDropUp, "昇順")
+            }
+        },
+        Descending {
+            @Composable
+            override fun icon() {
+                Icon(Icons.Default.ArrowDropDown, "降順")
+            }
+        };
+
+        @Composable
+        abstract fun icon()
+    }
+
+    enum class By {
+        Name, Size, Date;
+
+        @Composable
+        fun viewButton(state: OrderBy, onClick: (OrderBy) -> Unit) {
+            val selected = state.by == this
+            val by = this
+
+            Button(
+                onClick = {
+                    val newState = if (selected) {
+                        state.flipped()
+                    } else {
+                        OrderBy(Order.Descending, this)
+                    }
+                    onClick(newState)
+                },
+                elevation = null
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(by.name)
+                    if (selected) {
+                        state.order.icon()
+                    }
+                }
+            }
+        }
+    }
+
+    val sorter: Comparator<Content>
+        get() {
+            val selector: (Content) -> Comparable<*> = when (by) {
+                By.Name -> { it -> it.name }
+                By.Size -> { it -> it.path.fileSize() }
+                By.Date -> { it -> it.path.getLastModifiedTime() }
+            }
+
+            return when (order) {
+                Order.Ascending -> compareBy(selector)
+                Order.Descending -> compareByDescending(selector)
+            }
+        }
+
+    fun flipped(): OrderBy {
+        val order = when (order) {
+            Order.Ascending -> Order.Descending
+            Order.Descending -> Order.Ascending
+        }
+
+        return OrderBy(order, by)
+    }
+
+    @Composable
+    fun view(onClick: (OrderBy) -> Unit) {
+        val state = this
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            By.values().forEach { by ->
+                by.viewButton(state, onClick)
             }
         }
     }
