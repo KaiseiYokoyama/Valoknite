@@ -96,6 +96,21 @@ class ViewerContainer(collection: Collection) {
         var viewMode by remember { mutableStateOf(viewMode) }
         var orderBy by remember { mutableStateOf(orderBy) }
 
+        val onViewModeChange = { newMode: ViewMode, item: Media ->
+            val viewer = when (newMode) {
+                ViewMode.Single -> singleViewer
+                ViewMode.Scroll -> scrollViewer
+            }
+            if (viewer.show(item)) {
+                viewMode = newMode
+            }
+        }
+
+        if (viewMode == ViewMode.Single) {
+            singleViewer.view(onViewModeChange, orderBy)
+            return
+        }
+
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -148,18 +163,9 @@ class ViewerContainer(collection: Collection) {
                     }
                 }
 
-                val onViewModeChange = { newMode: ViewMode, item: Media ->
-                    val viewer = when (newMode) {
-                        ViewMode.Single -> singleViewer
-                        ViewMode.Scroll -> scrollViewer
-                    }
-                    if (viewer.show(item)) {
-                        viewMode = newMode
-                    }
-                }
                 when (viewMode) {
                     ViewMode.Scroll -> scrollViewer.view(onViewModeChange, orderBy)
-                    ViewMode.Single -> singleViewer.view(onViewModeChange, orderBy)
+                    ViewMode.Single -> TODO()
                 }
             }
         }

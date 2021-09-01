@@ -83,6 +83,10 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
 
         var zoom by remember { mutableStateOf(false) }
 
+        MaterialTheme(
+            colors = darkColors()
+        ) {
+            Surface {
         Box(
             Modifier.onSizeChanged { size = it }
                 .pointerMoveFilter(onMove = {
