@@ -113,7 +113,9 @@ class ViewerContainer(collection: Collection) {
                     }
                 },
                 actions = {
-                    orderBy.view { orderBy = it }
+                    if (viewMode == ViewMode.Scroll) {
+                        orderBy.view { orderBy = it }
+                    }
                 }
             )
 
