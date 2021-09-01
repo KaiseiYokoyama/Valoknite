@@ -43,7 +43,7 @@ class ImageMedia constructor(file: Path) : Media(file) {
     /**
      * 画像データ
      */
-    private val asset: ImageBitmap by lazy {
+    val asset: ImageBitmap by lazy {
         org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()).asImageBitmap()
     }
 

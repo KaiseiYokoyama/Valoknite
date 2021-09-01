@@ -1,7 +1,7 @@
 package viewer
 
 import OrderBy
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.FloatingActionButton
@@ -84,9 +84,7 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
         var size by remember { mutableStateOf(IntSize.Zero) }
         orderBy(orderBy)
 
-        var scale by remember { mutableStateOf(1f) }
-        var offset by remember { mutableStateOf(Offset.Zero) }
-        var mediaSize by remember { mutableStateOf(IntSize.Zero) }
+        var zoom by remember { mutableStateOf(false) }
 
         Box(
             Modifier.onSizeChanged { size = it }
@@ -94,54 +92,53 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                     mousePosition = it
                     false
                 })
-                .pointerInput(Unit) {
-                    detectTransformGestures { centroid, pan, zoom, rotation ->
-                        offset += pan
-                    }
-                }
                 .clickable {
                     val width = size.width.dp
                     if (mousePosition.x.dp < width / 4) {
                         prev()?.let {
                             content = it
                             // reset transform
-                            scale = 1f
-                            offset = Offset.Zero
+                            zoom = false
                         }
                     } else if (width * 3 / 4 < mousePosition.x.dp) {
                         next()?.let {
                             content = it
                             // reset transform
-                            scale = 1f
-                            offset = Offset.Zero
+                            zoom = false
                         }
                     } else {
-                        scale = if (scale != 1f) {
-                            1f
-                        } else {
-                            kotlin.math.max(
-                                size.width.toFloat() / mediaSize.width.toFloat(),
-                                size.height.toFloat() / mediaSize.height.toFloat()
-                            )
-                        }
+                        zoom = !zoom
                     }
                 }
+//                .horizontalScroll(horizontalScrollState)
+//                .verticalScroll(verticalScrollState)
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            val content = content
             // メディアを一枚ずつ表示
-            if (content is ImageMedia) {
-                content.view(
-                    Modifier.onSizeChanged { mediaSize = it }
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                            translationX = offset.x
-                            translationY = offset.y
-                        })
-            } else {
+            if (!zoom) {
                 content.view()
+            } else {
+                val content = content
+                if (content is ImageMedia) {
+                    val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
+                    val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
+
+                    Box(
+                        Modifier.horizontalScroll(horizontalScrollState).verticalScroll(verticalScrollState)
+                    ) {
+                        val modifier = if (size.width.toFloat() / size.height.toFloat()
+                            > content.asset.width.toFloat() / content.asset.height.toFloat()
+                        ) {
+                            Modifier.width(size.width.dp/2f)
+                        } else {
+                            Modifier.height(size.height.dp/2f)
+                        }
+                        content.view(modifier)
+                    }
+                } else {
+                    content.view()
+                }
             }
             // FABを表示
             FloatingActionButton(
