@@ -1,5 +1,6 @@
 package viewer
 
+import OrderBy
 import androidx.compose.runtime.Composable
 import content.Collection
 import content.Media
@@ -11,11 +12,11 @@ enum class ViewMode {
 /**
  * メディアを表示するビューアの基底クラス
  */
-abstract class Viewer(collection: Collection) {
+abstract class Viewer(collection: Collection, private var orderBy: OrderBy) {
     /**
      * メディア一覧
      */
-    val mediaList: List<Media> = collection.mediaList.toList()
+    val mediaList: ArrayList<Media> = ArrayList(collection.mediaList.sortedWith(orderBy.sorter))
 
     /**
      * 指定されたメディアを表示対象にする
@@ -24,9 +25,14 @@ abstract class Viewer(collection: Collection) {
      */
     abstract fun show(media: Media): Boolean
 
+    protected open fun orderBy(newOrderBy: OrderBy) {
+        orderBy = newOrderBy
+        mediaList.sortWith(orderBy.sorter)
+    }
+
     /**
      * ビューアをcomposeする
      */
     @Composable
-    abstract fun view(onViewerChange: (ViewMode, Media) -> Unit)
+    abstract fun view(onViewerChange: (ViewMode, Media) -> Unit, orderBy: OrderBy)
 }
