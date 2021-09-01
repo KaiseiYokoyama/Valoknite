@@ -2,6 +2,7 @@ package viewer
 
 import OrderBy
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -11,11 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import content.Collection
+import content.ImageMedia
 import content.Media
 
 /**
@@ -80,12 +84,17 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
         var size by remember { mutableStateOf(IntSize.Zero) }
         orderBy(orderBy)
 
+        var scale by remember { mutableStateOf(1f) }
+        var offsetX by remember { mutableStateOf(0f) }
+        var offsetY by remember { mutableStateOf(0f) }
+
         Box(
             Modifier.onSizeChanged { size = it }
                 .pointerMoveFilter(onMove = {
                     mousePosition = it
                     false
-                }).clickable {
+                })
+                .clickable {
                     val width = size.width.dp
                     if (mousePosition.x.dp < width / 4) {
                         prev()?.let {
@@ -97,11 +106,35 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                         }
                     }
                 }
+                .pointerInput(Unit) {
+                    forEachGesture {
+                        awaitPointerEventScope {
+                            awaitFirstDown()
+                            do {
+                                val event = awaitPointerEvent()
+                                scale *= event.calculateZoom()
+                                val offset = event.calculatePan()
+                                offsetX += offset.x
+                                offsetY += offset.y
+                            } while (event.changes.any { it.pressed })
+                        }
+                    }
+                }
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            val content = content
             // メディアを一枚ずつ表示
-            content.view()
+            if (content is ImageMedia) {
+                content.view(Modifier.graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offsetX
+                    translationY = offsetY
+                })
+            } else {
+                content.view()
+            }
             // FABを表示
             FloatingActionButton(
                 onClick = {
