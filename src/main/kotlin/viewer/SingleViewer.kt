@@ -86,6 +86,7 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
 
         var scale by remember { mutableStateOf(1f) }
         var offset by remember { mutableStateOf(Offset.Zero) }
+        var mediaSize by remember { mutableStateOf(IntSize.Zero) }
 
         Box(
             Modifier.onSizeChanged { size = it }
@@ -117,7 +118,12 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
                     } else {
                         scale = if (scale != 1f) {
                             1f
-                        } else { 2f }
+                        } else {
+                            kotlin.math.max(
+                                size.width.toFloat() / mediaSize.width.toFloat(),
+                                size.height.toFloat() / mediaSize.height.toFloat()
+                            )
+                        }
                     }
                 }
                 .fillMaxSize(),
@@ -126,12 +132,14 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
             val content = content
             // メディアを一枚ずつ表示
             if (content is ImageMedia) {
-                content.view(Modifier.graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    translationX = offset.x
-                    translationY = offset.y
-                })
+                content.view(
+                    Modifier.onSizeChanged { mediaSize = it }
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                        })
             } else {
                 content.view()
             }
