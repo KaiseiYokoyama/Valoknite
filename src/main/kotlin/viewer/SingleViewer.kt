@@ -1,7 +1,8 @@
 package viewer
 
 import OrderBy
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -11,11 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import content.Collection
+import content.ImageMedia
 import content.Media
 
 /**
@@ -80,28 +84,62 @@ class SingleViewer(collection: Collection, orderBy: OrderBy) : Viewer(collection
         var size by remember { mutableStateOf(IntSize.Zero) }
         orderBy(orderBy)
 
+        var zoom by remember { mutableStateOf(false) }
+
         Box(
             Modifier.onSizeChanged { size = it }
                 .pointerMoveFilter(onMove = {
                     mousePosition = it
                     false
-                }).clickable {
+                })
+                .clickable {
                     val width = size.width.dp
                     if (mousePosition.x.dp < width / 4) {
                         prev()?.let {
                             content = it
+                            // reset transform
+                            zoom = false
                         }
                     } else if (width * 3 / 4 < mousePosition.x.dp) {
                         next()?.let {
                             content = it
+                            // reset transform
+                            zoom = false
                         }
+                    } else {
+                        zoom = !zoom
                     }
                 }
+//                .horizontalScroll(horizontalScrollState)
+//                .verticalScroll(verticalScrollState)
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             // メディアを一枚ずつ表示
-            content.view()
+            if (!zoom) {
+                content.view()
+            } else {
+                val content = content
+                if (content is ImageMedia) {
+                    val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
+                    val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
+
+                    Box(
+                        Modifier.horizontalScroll(horizontalScrollState).verticalScroll(verticalScrollState)
+                    ) {
+                        val modifier = if (size.width.toFloat() / size.height.toFloat()
+                            > content.asset.width.toFloat() / content.asset.height.toFloat()
+                        ) {
+                            Modifier.width(size.width.dp/2f)
+                        } else {
+                            Modifier.height(size.height.dp/2f)
+                        }
+                        content.view(modifier)
+                    }
+                } else {
+                    content.view()
+                }
+            }
             // FABを表示
             FloatingActionButton(
                 onClick = {

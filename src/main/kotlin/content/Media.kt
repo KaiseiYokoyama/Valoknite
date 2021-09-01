@@ -2,6 +2,7 @@ package content
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import java.nio.file.Path
@@ -42,7 +43,7 @@ class ImageMedia constructor(file: Path) : Media(file) {
     /**
      * 画像データ
      */
-    private val asset: ImageBitmap by lazy {
+    val asset: ImageBitmap by lazy {
         org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()).asImageBitmap()
     }
 
@@ -54,9 +55,15 @@ class ImageMedia constructor(file: Path) : Media(file) {
 
     @Composable
     override fun view() {
+        view(Modifier)
+    }
+
+    @Composable
+    fun view(modifier: Modifier) {
         Image(
             asset,
             contentDescription = file.fileName.let { it.toString() },
+            modifier,
         )
     }
 
