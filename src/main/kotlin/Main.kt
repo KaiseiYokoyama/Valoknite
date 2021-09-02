@@ -12,9 +12,8 @@ fun main() = application {
         title = "Valoknite",
         state = rememberWindowState(width = 800.dp, height = 600.dp)
     ) {
-        val viewerContainer = remember { mutableStateOf(ViewerContainer(this.window)) }
         MaterialTheme {
-            viewerContainer.value.view()
+            App(this.window)
         }
     }
 }
