@@ -1,3 +1,4 @@
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,12 +13,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.nio.file.Path
-import javax.swing.JFileChooser
 import content.Collection
 import content.Content
 import content.Media
@@ -26,43 +24,12 @@ import viewer.SingleViewer
 import viewer.ViewMode
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
-import kotlin.properties.Delegates
 
 /**
  * メディアビューアのコンテナの振る舞いを定義するクラス。
  * @constructor コレクションを直接代入してインスタンス化する
  */
-class ViewerContainer(collection: Collection) {
-    /**
-     * ファイルダイアログを表示して、ユーザにコレクションとして扱うフォルダを選んでもらう
-     */
-    constructor(composeWindow: ComposeWindow) : this(kotlin.run {
-        var dirPath: Path?
-        val dialog = JFileChooser().apply {
-            fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-            dialogTitle = "Open"
-        }
-
-        do {
-            // ダイアログを表示
-            dialog.showOpenDialog(composeWindow)
-            dirPath = dialog.selectedFile?.let {
-                it.toPath()
-            }
-        } while (dirPath == null)
-
-        Collection(dirPath)
-    })
-
-    /**
-     * 表示中のコレクション
-     * 変更があった際にはstateも更新する
-     */
-    var focusOn: Collection by Delegates.observable(collection) { _, _, _ ->
-        singleViewer = SingleViewer(collection, orderBy)
-        scrollViewer = ScrollViewer(collection, orderBy)
-    }
-
+class ViewerContainer(private val collection: Collection) {
     /**
      * メディアの並び順
      */
@@ -92,7 +59,7 @@ class ViewerContainer(collection: Collection) {
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    fun view() {
+    fun view(changeCollectionTo: (Collection) -> Unit) {
         var viewMode by remember { mutableStateOf(viewMode) }
         var orderBy by remember { mutableStateOf(orderBy) }
 
@@ -122,9 +89,9 @@ class ViewerContainer(collection: Collection) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.Start,
                     ) {
-                        Text(focusOn.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Spacer(Modifier.height(4.dp))
-                        Text(focusOn.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
+                        Text(collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
                     }
                 },
                 actions = {
@@ -155,8 +122,13 @@ class ViewerContainer(collection: Collection) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        items(focusOn.subCollections) { collection ->
-                            Card(Modifier.padding(10.dp), elevation = 4.dp) {
+                        items(collection.subCollections) { collection ->
+                            Card(Modifier.padding(10.dp)
+                                .clickable {
+                                    changeCollectionTo(collection)
+                                },
+                                elevation = 4.dp
+                            ) {
                                 collection.viewAsThumbnail()
                             }
                         }
