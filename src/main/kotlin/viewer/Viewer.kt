@@ -1,14 +1,11 @@
 package viewer
 
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ViewArray
@@ -17,8 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -35,6 +36,7 @@ enum class ViewMode {
 /**
  * メディアを一つずつ表示するビューア
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SingleMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
@@ -50,6 +52,10 @@ fun SingleMediaViewer(
 
     // メディア切り替え関係
     var mousePosition = Offset.Zero
+    val reqr = FocusRequester()
+
+    LaunchedEffect(Unit) { reqr.requestFocus() }
+
 
     MaterialTheme(
         colors = darkColors()
@@ -78,7 +84,34 @@ fun SingleMediaViewer(
                         } else {
                             zoom = !zoom
                         }
-                    },
+                    }
+                    .onKeyEvent {
+                        if (it.type != KeyEventType.KeyDown) {
+                            false
+                        } else {
+                            when (it.key) {
+                                Key.DirectionLeft -> {
+                                    val newIndex = kotlin.math.max(index - 1, 0)
+                                    if (index != newIndex) {
+                                        index = newIndex
+                                        zoom = false
+                                    }
+                                    true
+                                }
+                                Key.DirectionRight -> {
+                                    val newIndex = kotlin.math.min(index + 1, contents.size - 1)
+                                    if (index != newIndex) {
+                                        index = newIndex
+                                        zoom = false
+                                    }
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+                    }
+                    .focusRequester(reqr)
+                    .focusable(),
                 contentAlignment = Alignment.Center
             ) {
                 val media = contents[index]
