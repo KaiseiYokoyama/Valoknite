@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import content.Collection
 import content.ImageMedia
 import content.Media
 
@@ -157,6 +158,32 @@ fun ScrollMediaViewer(
                 onViewerChange(ViewMode.Single, item)
             }) {
                 item.view()
+            }
+        }
+    }
+}
+
+/**
+ * コレクションを一覧表示するビューア
+ */
+@Composable
+fun ScrollCollectionViewer(
+    modifier: Modifier = Modifier.fillMaxSize(),
+    contents: List<Collection>,
+    onClickCollection: (Collection) -> Unit
+) {
+    LazyRow(
+        modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        items(contents) { collection ->
+            Box(Modifier.fillMaxSize()
+                .clickable {
+                    onClickCollection(collection)
+                }
+            ) {
+                collection.view()
             }
         }
     }
