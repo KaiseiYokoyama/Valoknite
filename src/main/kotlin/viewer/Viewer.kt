@@ -28,7 +28,7 @@ import content.ImageMedia
 import content.Media
 
 enum class ViewMode {
-    Single, Scroll,
+    Single, Scroll, Collection,
 }
 
 /**
@@ -142,7 +142,7 @@ fun ScrollMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
     contents: List<Media>,
     target: Media,
-    onViewerChange: (ViewMode, Media) -> Unit
+    onViewerChange: (ViewMode, Media) -> Unit,
 ) {
     val index = contents.indexOf(target)
     val scrollState by remember { mutableStateOf(LazyListState(index, 0)) }

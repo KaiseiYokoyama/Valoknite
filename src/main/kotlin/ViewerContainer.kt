@@ -1,13 +1,7 @@
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -27,23 +21,17 @@ import kotlin.io.path.getLastModifiedTime
  */
 @Composable
 fun ViewerContainer(
-    collection: Collection,
-    changeCollectionTo: (Collection) -> Unit
+    state: ViewerContainerState,
 ) {
-    var orderBy by remember { mutableStateOf(OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)) }
-    var contents by remember { mutableStateOf(collection.mediaList.sortedWith(orderBy.sorter)) }
-    var viewMode by remember { mutableStateOf(ViewMode.Scroll) }
-
-    var target by remember { mutableStateOf(contents[0]) }
+    var state by remember { mutableStateOf(state) }
 
     val onViewModeChange = { newMode: ViewMode, media: Media ->
-        viewMode = newMode
-        target = media
+        state = state.viewMode(newMode).target(media)
     }
 
-    if (viewMode == ViewMode.Single) {
+    if (state.viewMode == ViewMode.Single) {
         SingleMediaViewer(
-            contents = contents, target = target, onViewerChange = onViewModeChange
+            contents = state.contents, target = state.target, onViewerChange = onViewModeChange
         )
         return
     }
@@ -59,65 +47,74 @@ fun ViewerContainer(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start,
                 ) {
-                    Text(collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(state.collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(Modifier.height(4.dp))
-                    Text(collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
+                    Text(state.collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
                 }
             },
             actions = {
-                if (viewMode == ViewMode.Scroll) {
-                    orderBy.view {
-                        orderBy = it
-                        contents = contents.sortedWith(it.sorter)
+                if (state.viewMode == ViewMode.Scroll) {
+                    state.orderBy.view {
+                        state = state.orderBy(it)
                     }
                 }
             }
         )
 
         Row {
-            // ナビゲーションバー
-            val navWidth = 100.dp
-            Column(Modifier.width(navWidth)) {
-                // 戻るボタン
-                Icon(
-                    Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    Modifier.fillMaxWidth().height(navWidth * 0.5f)
-                )
-                // 進むボタン
-                Icon(
-                    Icons.Default.ArrowForward,
-                    contentDescription = "Forward",
-                    Modifier.fillMaxWidth().height(navWidth * 0.5f)
-                )
-                // コレクション一覧
-                LazyColumn(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    items(collection.subCollections) { collection ->
-                        Card(
-                            Modifier.padding(10.dp)
-                                .clickable {
-                                    changeCollectionTo(collection)
-                                },
-                            elevation = 4.dp
-                        ) {
-                            collection.viewAsThumbnail()
-                        }
+            if (state.viewMode == ViewMode.Scroll) {
+                Box {
+                    ScrollMediaViewer(
+                        contents = state.contents,
+                        target = state.target,
+                        onViewerChange = onViewModeChange
+                    )
+                    FloatingActionButton(
+                        onClick = { state = state.viewMode(ViewMode.Collection) },
+                        Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                    ) {
+                        Icon(Icons.Default.Folder, contentDescription = "コレクション一覧を表示")
                     }
                 }
-            }
-
-            if (viewMode == ViewMode.Scroll) {
-                ScrollMediaViewer(
-                    contents = contents,
-                    target = target,
-                    onViewerChange = onViewModeChange
-                )
+            } else if (state.viewMode == ViewMode.Collection) {
+                Box {
+                    ScrollCollectionViewer(
+                        contents = state.collection.subCollections,
+                        onClickCollection = {
+                            state = ViewerContainerState.new(it).viewMode(ViewMode.Scroll)
+                        }
+                    )
+                }
             }
         }
     }
+}
+
+data class ViewerContainerState(
+    var collection: Collection,
+    var contents: List<Media>,
+    var target: Media,
+    var orderBy: OrderBy,
+    var viewMode: ViewMode,
+) {
+    companion object {
+        fun new(collection: Collection): ViewerContainerState {
+            val orderBy = OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)
+            val mediaList = collection.mediaList.sortedWith(orderBy.sorter)
+
+            return ViewerContainerState(
+                collection,
+                mediaList,
+                mediaList[0],
+                orderBy,
+                ViewMode.Scroll
+            )
+        }
+    }
+
+    fun target(target: Media) = this.copy(target = target)
+    fun orderBy(orderBy: OrderBy) = this.copy(contents = contents.sortedWith(orderBy.sorter), orderBy = orderBy)
+    fun viewMode(viewMode: ViewMode) = this.copy(viewMode = viewMode)
 }
 
 data class OrderBy(var order: Order, val by: By) {
