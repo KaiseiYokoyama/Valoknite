@@ -27,5 +27,5 @@ fun App(composeWindow: ComposeWindow) {
         })
     }
 
-    ViewerContainer(collection).view { collection = it }
+    ViewerContainer(collection) { collection = it }
 }

@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,126 +18,103 @@ import androidx.compose.ui.unit.sp
 import content.Collection
 import content.Content
 import content.Media
-import viewer.ScrollViewer
-import viewer.SingleViewer
-import viewer.ViewMode
+import viewer.*
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
 
 /**
- * メディアビューアのコンテナの振る舞いを定義するクラス。
- * @constructor コレクションを直接代入してインスタンス化する
+ * メディアビューアのコンテナ
  */
-class ViewerContainer(private val collection: Collection) {
-    /**
-     * メディアの並び順
-     */
-    var orderBy: OrderBy = OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)
+@Composable
+fun ViewerContainer(
+    collection: Collection,
+    changeCollectionTo: (Collection) -> Unit
+) {
+    var orderBy by remember { mutableStateOf(OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)) }
+    var contents by remember { mutableStateOf(collection.mediaList.sortedWith(orderBy.sorter)) }
+    var viewMode by remember { mutableStateOf(ViewMode.Scroll) }
 
-    /**
-     * メディアを一つずつ表示するビューア
-     * `focusOn`に変更があった時更新される
-     */
-    var singleViewer: SingleViewer = SingleViewer(collection, orderBy)
+    var target by remember { mutableStateOf(contents[0]) }
 
-    /**
-     * メディアを一括表示するビューア
-     * `focusOn`に変更があった時更新される
-     */
-    var scrollViewer: ScrollViewer = ScrollViewer(collection, orderBy)
+    val onViewModeChange = { newMode: ViewMode, media: Media ->
+        viewMode = newMode
+        target = media
+    }
 
-    /**
-     * ビューモード
-     */
-    var viewMode = ViewMode.Scroll
+    if (viewMode == ViewMode.Single) {
+        SingleMediaViewer(
+            contents = contents, target = target, onViewerChange = onViewModeChange
+        )
+        return
+    }
 
-    /**
-     * コレクションの表示履歴
-     */
-    val history: ArrayList<Collection> = arrayListOf(collection)
-
-    @OptIn(ExperimentalComposeUiApi::class)
-    @Composable
-    fun view(changeCollectionTo: (Collection) -> Unit) {
-        var viewMode by remember { mutableStateOf(viewMode) }
-        var orderBy by remember { mutableStateOf(orderBy) }
-
-        val onViewModeChange = { newMode: ViewMode, item: Media ->
-            val viewer = when (newMode) {
-                ViewMode.Single -> singleViewer
-                ViewMode.Scroll -> scrollViewer
-            }
-            if (viewer.show(item)) {
-                viewMode = newMode
-            }
-        }
-
-        if (viewMode == ViewMode.Single) {
-            singleViewer.view(onViewModeChange, orderBy)
-            return
-        }
-
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            // TopAppBar
-            TopAppBar(
-                title = {
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.Start,
-                    ) {
-                        Text(collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Spacer(Modifier.height(4.dp))
-                        Text(collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
-                    }
-                },
-                actions = {
-                    if (viewMode == ViewMode.Scroll) {
-                        orderBy.view { orderBy = it }
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // TopAppBar
+        TopAppBar(
+            title = {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    Text(collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text(collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
+                }
+            },
+            actions = {
+                if (viewMode == ViewMode.Scroll) {
+                    orderBy.view {
+                        orderBy = it
+                        contents = contents.sortedWith(it.sorter)
                     }
                 }
-            )
+            }
+        )
 
-            Row {
-                // ナビゲーションバー
-                val navWidth = 100.dp
-                Column(Modifier.width(navWidth)) {
-                    // 戻るボタン
-                    Icon(
-                        Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        Modifier.fillMaxWidth().height(navWidth * 0.5f)
-                    )
-                    // 進むボタン
-                    Icon(
-                        Icons.Default.ArrowForward,
-                        contentDescription = "Forward",
-                        Modifier.fillMaxWidth().height(navWidth * 0.5f)
-                    )
-                    // コレクション一覧
-                    LazyColumn(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        items(collection.subCollections) { collection ->
-                            Card(Modifier.padding(10.dp)
+        Row {
+            // ナビゲーションバー
+            val navWidth = 100.dp
+            Column(Modifier.width(navWidth)) {
+                // 戻るボタン
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    Modifier.fillMaxWidth().height(navWidth * 0.5f)
+                )
+                // 進むボタン
+                Icon(
+                    Icons.Default.ArrowForward,
+                    contentDescription = "Forward",
+                    Modifier.fillMaxWidth().height(navWidth * 0.5f)
+                )
+                // コレクション一覧
+                LazyColumn(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    items(collection.subCollections) { collection ->
+                        Card(
+                            Modifier.padding(10.dp)
                                 .clickable {
                                     changeCollectionTo(collection)
                                 },
-                                elevation = 4.dp
-                            ) {
-                                collection.viewAsThumbnail()
-                            }
+                            elevation = 4.dp
+                        ) {
+                            collection.viewAsThumbnail()
                         }
                     }
                 }
+            }
 
-                when (viewMode) {
-                    ViewMode.Scroll -> scrollViewer.view(onViewModeChange, orderBy)
-                    ViewMode.Single -> TODO()
-                }
+            if (viewMode == ViewMode.Scroll) {
+                ScrollMediaViewer(
+                    contents = contents,
+                    target = target,
+                    onViewerChange = onViewModeChange
+                )
             }
         }
     }
