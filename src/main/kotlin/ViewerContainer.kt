@@ -13,6 +13,7 @@ import content.Collection
 import content.Content
 import content.Media
 import viewer.*
+import java.util.Stack
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
 
@@ -43,13 +44,33 @@ fun ViewerContainer(
         // TopAppBar
         TopAppBar(
             title = {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start,
+                Row(
+                    Modifier.padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start,
                 ) {
-                    Text(state.collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Spacer(Modifier.height(4.dp))
-                    Text(state.collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
+                    // nameとパス
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start,
+                    ) {
+                        Text(state.collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text(state.collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
+                    }
+                    // 戻るボタン
+                    if (!ViewerContainerState.history.empty()) {
+                        Button(
+                            onClick = {
+                                val pop = ViewerContainerState.history.pop()
+                                println("${pop.name}")
+                                state = state.collection(pop, false)
+                            },
+                            elevation = null,
+                        ) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "戻る")
+                        }
+                    }
                 }
             },
             actions = {
@@ -81,7 +102,7 @@ fun ViewerContainer(
                     ScrollCollectionViewer(
                         contents = state.collection.subCollections,
                         onClickCollection = {
-                            state = ViewerContainerState.new(it).viewMode(ViewMode.Scroll)
+                            state = state.collection(it).viewMode(ViewMode.Scroll)
                         }
                     )
                 }
@@ -102,6 +123,8 @@ data class ViewerContainerState private constructor(
     val viewMode: ViewMode,
 ) {
     companion object {
+        val history = Stack<Collection>()
+
         fun new(collection: Collection): ViewerContainerState {
             val orderBy = OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)
             val mediaList = collection.mediaList.sortedWith(orderBy.sorter)
@@ -119,6 +142,12 @@ data class ViewerContainerState private constructor(
     fun target(target: Media) = this.copy(target = target)
     fun orderBy(orderBy: OrderBy) = this.copy(contents = contents.sortedWith(orderBy.sorter), orderBy = orderBy)
     fun viewMode(viewMode: ViewMode) = this.copy(viewMode = viewMode)
+    fun collection(collection: Collection, record: Boolean = true): ViewerContainerState {
+        if (record) {
+            history.push(this.collection)
+        }
+        return ViewerContainerState.new(collection).copy(orderBy = orderBy, viewMode = viewMode)
+    }
 }
 
 data class OrderBy(var order: Order, val by: By) {
