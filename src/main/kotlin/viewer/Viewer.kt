@@ -62,13 +62,13 @@ fun SingleMediaViewer(
                     .clickable {
                         val width = size.width.dp
                         if (mousePosition.x.dp < width / 4) {
-                            val newIndex = kotlin.math.min(index + 1, contents.size)
+                            val newIndex = kotlin.math.max(index - 1, 0)
                             if (index != newIndex) {
                                 index = newIndex
                                 zoom = false
                             }
                         } else if (width * 3 / 4 < mousePosition.x.dp) {
-                            val newIndex = kotlin.math.max(index - 1, 0)
+                            val newIndex = kotlin.math.min(index + 1, contents.size - 1)
                             if (index != newIndex) {
                                 index = newIndex
                                 zoom = false
