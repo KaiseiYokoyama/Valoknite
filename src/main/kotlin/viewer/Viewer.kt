@@ -38,10 +38,10 @@ enum class ViewMode {
 fun SingleMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
     contents: List<Media>,
-    target: Media,
-    onViewerChange: (ViewMode, Media) -> Unit
+    target: Int,
+    onViewerChange: (ViewMode, Int) -> Unit
 ) {
-    var index by remember { mutableStateOf(contents.indexOf(target)) }
+    var index by remember { mutableStateOf(target) }
 
     // ズーム関係
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -123,7 +123,7 @@ fun SingleMediaViewer(
                 // FABを表示
                 FloatingActionButton(
                     onClick = {
-                        onViewerChange(ViewMode.Scroll, media)
+                        onViewerChange(ViewMode.Scroll, index)
                     },
                     Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 ) {
@@ -141,10 +141,10 @@ fun SingleMediaViewer(
 fun ScrollMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
     contents: List<Media>,
-    target: Media,
-    onViewerChange: (ViewMode, Media) -> Unit,
+    target: Int,
+    onViewerChange: (ViewMode, Int) -> Unit,
 ) {
-    val index = contents.indexOf(target)
+    val index = target
     val scrollState by remember { mutableStateOf(LazyListState(index, 0)) }
 
     LazyRow(
@@ -155,7 +155,7 @@ fun ScrollMediaViewer(
     ) {
         items(contents) { item ->
             Box(Modifier.padding(16.dp).clickable {
-                onViewerChange(ViewMode.Single, item)
+                onViewerChange(ViewMode.Single, index)
             }) {
                 item.view()
             }

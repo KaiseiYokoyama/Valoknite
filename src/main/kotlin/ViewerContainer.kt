@@ -29,8 +29,8 @@ fun ViewerContainer(
 ) {
     var state by remember { mutableStateOf(state) }
 
-    val onViewModeChange = { newMode: ViewMode, media: Media ->
-        state = state.viewMode(newMode).target(media)
+    val onViewModeChange = { newMode: ViewMode, target: Int ->
+        state = state.viewMode(newMode).target(target)
     }
 
     if (state.viewMode == ViewMode.Single) {
@@ -86,22 +86,24 @@ fun ViewerContainer(
         )
 
         Box {
-            Box {
-                ScrollMediaViewer(
-                    contents = state.contents,
-                    target = state.target,
-                    onViewerChange = onViewModeChange
-                )
-                if (state.collection.subCollections.isNotEmpty()) {
-                    FloatingActionButton(
-                        onClick = { state = state.viewMode(ViewMode.Collection) },
-                        Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                    ) {
-                        Icon(Icons.Default.Folder, contentDescription = "コレクション一覧を表示")
+            if (state.contents.isNotEmpty()) {
+                Box {
+                    ScrollMediaViewer(
+                        contents = state.contents,
+                        target = state.target,
+                        onViewerChange = onViewModeChange
+                    )
+                    if (state.collection.subCollections.isNotEmpty()) {
+                        FloatingActionButton(
+                            onClick = { state = state.viewMode(ViewMode.Collection) },
+                            Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                        ) {
+                            Icon(Icons.Default.Folder, contentDescription = "コレクション一覧を表示")
+                        }
                     }
                 }
             }
-            if (state.viewMode == ViewMode.Collection) {
+            if (state.viewMode == ViewMode.Collection || state.contents.isEmpty()) {
                 Box(
                     Modifier.clickable { state = state.viewMode(ViewMode.Scroll) }
                         .background(Color.Black.copy(alpha = 0.3f))
@@ -125,7 +127,7 @@ fun ViewerContainer(
 data class ViewerContainerState private constructor(
     val collection: Collection,
     val contents: List<Media>,
-    val target: Media,
+    val target: Int,
     val orderBy: OrderBy,
     val viewMode: ViewMode,
 ) {
@@ -139,14 +141,14 @@ data class ViewerContainerState private constructor(
             return ViewerContainerState(
                 collection,
                 mediaList,
-                mediaList[0],
+                0,
                 orderBy,
                 ViewMode.Scroll
             )
         }
     }
 
-    fun target(target: Media) = this.copy(target = target)
+    fun target(target: Int) = this.copy(target = target)
     fun orderBy(orderBy: OrderBy) = this.copy(contents = contents.sortedWith(orderBy.sorter), orderBy = orderBy)
     fun viewMode(viewMode: ViewMode) = this.copy(viewMode = viewMode)
     fun collection(collection: Collection, record: Boolean = true): ViewerContainerState {
