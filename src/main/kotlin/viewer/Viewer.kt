@@ -67,24 +67,6 @@ fun SingleMediaViewer(
                         mousePosition = it
                         false
                     })
-                    .clickable {
-                        val width = size.width.dp
-                        if (mousePosition.x.dp < width / 4) {
-                            val newIndex = kotlin.math.max(index - 1, 0)
-                            if (index != newIndex) {
-                                index = newIndex
-                                zoom = false
-                            }
-                        } else if (width * 3 / 4 < mousePosition.x.dp) {
-                            val newIndex = kotlin.math.min(index + 1, contents.size - 1)
-                            if (index != newIndex) {
-                                index = newIndex
-                                zoom = false
-                            }
-                        } else {
-                            zoom = !zoom
-                        }
-                    }
                     .onKeyEvent {
                         if (it.type != KeyEventType.KeyDown) {
                             false
@@ -116,42 +98,44 @@ fun SingleMediaViewer(
             ) {
                 val media = contents[index]
                 // メディアを一枚ずつ表示
-                if (!zoom) {
-                    media.view()
-                } else {
-                    if (media is ImageMedia) {
-                        val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
-                        val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
-
-                        val density = LocalDensity.current.run {
-                            1.dp.toPx()
-                        }
-                        val wide = (size.width.toFloat() / size.height.toFloat()
-                                > media.asset.width.toFloat() / media.asset.height.toFloat())
-                        val modifier = if (wide) {
-                            Modifier.width(size.width.dp / density)
-                                .height(
-                                    size.width.dp
-                                            * (media.asset.height.toFloat() / media.asset.width.toFloat())
-                                            / density
-                                )
-                        } else {
-                            Modifier.height(size.height.dp / density)
-                                .width(
-                                    size.height.dp
-                                            * (media.asset.width.toFloat() / media.asset.height.toFloat())
-                                            / density
-                                )
-                        }
-                        Box(
-                            Modifier.horizontalScroll(horizontalScrollState)
-                                .verticalScroll(verticalScrollState)
-                                .fillMaxSize()
-                        ) {
-                            media.view(modifier)
-                        }
-                    } else {
+                Box(Modifier.clickable { zoom = !zoom }) {
+                    if (!zoom) {
                         media.view()
+                    } else {
+                        if (media is ImageMedia) {
+                            val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
+                            val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
+
+                            val density = LocalDensity.current.run {
+                                1.dp.toPx()
+                            }
+                            val wide = (size.width.toFloat() / size.height.toFloat()
+                                    > media.asset.width.toFloat() / media.asset.height.toFloat())
+                            val modifier = if (wide) {
+                                Modifier.width(size.width.dp / density)
+                                    .height(
+                                        size.width.dp
+                                                * (media.asset.height.toFloat() / media.asset.width.toFloat())
+                                                / density
+                                    )
+                            } else {
+                                Modifier.height(size.height.dp / density)
+                                    .width(
+                                        size.height.dp
+                                                * (media.asset.width.toFloat() / media.asset.height.toFloat())
+                                                / density
+                                    )
+                            }
+                            Box(
+                                Modifier.horizontalScroll(horizontalScrollState)
+                                    .verticalScroll(verticalScrollState)
+                                    .fillMaxSize()
+                            ) {
+                                media.view(modifier)
+                            }
+                        } else {
+                            media.view()
+                        }
                     }
                 }
                 // FABを表示
