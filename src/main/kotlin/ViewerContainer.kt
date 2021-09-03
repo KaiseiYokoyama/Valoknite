@@ -202,6 +202,7 @@ data class OrderBy(var order: Order, val by: By) {
                     onClick(newState)
                 },
                 elevation = null,
+                contentPadding = PaddingValues(5.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
