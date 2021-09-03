@@ -1,14 +1,11 @@
 package viewer
 
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ViewArray
@@ -17,8 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -35,6 +36,7 @@ enum class ViewMode {
 /**
  * メディアを一つずつ表示するビューア
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SingleMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
@@ -50,6 +52,10 @@ fun SingleMediaViewer(
 
     // メディア切り替え関係
     var mousePosition = Offset.Zero
+    val reqr = FocusRequester()
+
+    LaunchedEffect(Unit) { reqr.requestFocus() }
+
 
     MaterialTheme(
         colors = darkColors()
@@ -61,64 +67,79 @@ fun SingleMediaViewer(
                         mousePosition = it
                         false
                     })
-                    .clickable {
-                        val width = size.width.dp
-                        if (mousePosition.x.dp < width / 4) {
-                            val newIndex = kotlin.math.max(index - 1, 0)
-                            if (index != newIndex) {
-                                index = newIndex
-                                zoom = false
-                            }
-                        } else if (width * 3 / 4 < mousePosition.x.dp) {
-                            val newIndex = kotlin.math.min(index + 1, contents.size - 1)
-                            if (index != newIndex) {
-                                index = newIndex
-                                zoom = false
-                            }
+                    .onKeyEvent {
+                        if (it.type != KeyEventType.KeyDown) {
+                            false
                         } else {
-                            zoom = !zoom
+                            when (it.key) {
+                                Key.Escape -> {
+                                    onViewerChange(ViewMode.Scroll, index)
+                                    true
+                                }
+                                Key.DirectionLeft -> {
+                                    val newIndex = kotlin.math.max(index - 1, 0)
+                                    if (index != newIndex) {
+                                        index = newIndex
+                                        zoom = false
+                                    }
+                                    true
+                                }
+                                Key.DirectionRight -> {
+                                    val newIndex = kotlin.math.min(index + 1, contents.size - 1)
+                                    if (index != newIndex) {
+                                        index = newIndex
+                                        zoom = false
+                                    }
+                                    true
+                                }
+                                else -> false
+                            }
                         }
-                    },
+                    }
+                    .focusRequester(reqr)
+                    .focusable(),
                 contentAlignment = Alignment.Center
             ) {
                 val media = contents[index]
                 // メディアを一枚ずつ表示
-                if (!zoom) {
-                    media.view()
-                } else {
-                    if (media is ImageMedia) {
-                        val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
-                        val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
-
-                        val density = LocalDensity.current.run {
-                            1.dp.toPx()
-                        }
-                        val wide = (size.width.toFloat() / size.height.toFloat()
-                                > media.asset.width.toFloat() / media.asset.height.toFloat())
-                        val modifier = if (wide) {
-                            Modifier.width(size.width.dp / density)
-                                .height(
-                                    size.width.dp
-                                            * (media.asset.height.toFloat() / media.asset.width.toFloat())
-                                            / density
-                                )
-                        } else {
-                            Modifier.height(size.height.dp / density)
-                                .width(
-                                    size.height.dp
-                                            * (media.asset.width.toFloat() / media.asset.height.toFloat())
-                                            / density
-                                )
-                        }
-                        Box(
-                            Modifier.horizontalScroll(horizontalScrollState)
-                                .verticalScroll(verticalScrollState)
-                                .fillMaxSize()
-                        ) {
-                            media.view(modifier)
-                        }
-                    } else {
+                Box(Modifier.clickable { zoom = !zoom }) {
+                    if (!zoom) {
                         media.view()
+                    } else {
+                        if (media is ImageMedia) {
+                            val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
+                            val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
+
+                            val density = LocalDensity.current.run {
+                                1.dp.toPx()
+                            }
+                            val wide = (size.width.toFloat() / size.height.toFloat()
+                                    > media.asset.width.toFloat() / media.asset.height.toFloat())
+                            val modifier = if (wide) {
+                                Modifier.width(size.width.dp / density)
+                                    .height(
+                                        size.width.dp
+                                                * (media.asset.height.toFloat() / media.asset.width.toFloat())
+                                                / density
+                                    )
+                            } else {
+                                Modifier.height(size.height.dp / density)
+                                    .width(
+                                        size.height.dp
+                                                * (media.asset.width.toFloat() / media.asset.height.toFloat())
+                                                / density
+                                    )
+                            }
+                            Box(
+                                Modifier.horizontalScroll(horizontalScrollState)
+                                    .verticalScroll(verticalScrollState)
+                                    .fillMaxSize()
+                            ) {
+                                media.view(modifier)
+                            }
+                        } else {
+                            media.view()
+                        }
                     }
                 }
                 // FABを表示
