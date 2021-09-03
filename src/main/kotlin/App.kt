@@ -9,7 +9,7 @@ import javax.swing.JFileChooser
 
 @Composable
 fun App(composeWindow: ComposeWindow) {
-    var collection: Collection by remember {
+    val rootCollection: Collection by remember {
         mutableStateOf(kotlin.run {
             var dirPath: Path?
             val dialog = JFileChooser().apply {
@@ -27,5 +27,5 @@ fun App(composeWindow: ComposeWindow) {
         })
     }
 
-    ViewerContainer(collection) { collection = it }
+    ViewerContainer(ViewerContainerState.new(rootCollection))
 }
