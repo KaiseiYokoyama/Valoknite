@@ -1,3 +1,5 @@
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -6,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,23 +85,25 @@ fun ViewerContainer(
             }
         )
 
-        Row {
-            if (state.viewMode == ViewMode.Scroll) {
-                Box {
-                    ScrollMediaViewer(
-                        contents = state.contents,
-                        target = state.target,
-                        onViewerChange = onViewModeChange
-                    )
-                    FloatingActionButton(
-                        onClick = { state = state.viewMode(ViewMode.Collection) },
-                        Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                    ) {
-                        Icon(Icons.Default.Folder, contentDescription = "コレクション一覧を表示")
-                    }
+        Box {
+            Box {
+                ScrollMediaViewer(
+                    contents = state.contents,
+                    target = state.target,
+                    onViewerChange = onViewModeChange
+                )
+                FloatingActionButton(
+                    onClick = { state = state.viewMode(ViewMode.Collection) },
+                    Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                ) {
+                    Icon(Icons.Default.Folder, contentDescription = "コレクション一覧を表示")
                 }
-            } else if (state.viewMode == ViewMode.Collection) {
-                Box {
+            }
+            if (state.viewMode == ViewMode.Collection) {
+                Box(
+                    Modifier.clickable { state = state.viewMode(ViewMode.Scroll) }
+                        .background(Color.Black.copy(alpha = 0.3f))
+                ) {
                     ScrollCollectionViewer(
                         contents = state.collection.subCollections,
                         onClickCollection = {
