@@ -72,6 +72,10 @@ fun SingleMediaViewer(
                             false
                         } else {
                             when (it.key) {
+                                Key.Escape -> {
+                                    onViewerChange(ViewMode.Scroll, index)
+                                    true
+                                }
                                 Key.DirectionLeft -> {
                                     val newIndex = kotlin.math.max(index - 1, 0)
                                     if (index != newIndex) {
