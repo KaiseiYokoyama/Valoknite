@@ -92,11 +92,13 @@ fun ViewerContainer(
                     target = state.target,
                     onViewerChange = onViewModeChange
                 )
-                FloatingActionButton(
-                    onClick = { state = state.viewMode(ViewMode.Collection) },
-                    Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                ) {
-                    Icon(Icons.Default.Folder, contentDescription = "コレクション一覧を表示")
+                if (state.collection.subCollections.isNotEmpty()) {
+                    FloatingActionButton(
+                        onClick = { state = state.viewMode(ViewMode.Collection) },
+                        Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                    ) {
+                        Icon(Icons.Default.Folder, contentDescription = "コレクション一覧を表示")
+                    }
                 }
             }
             if (state.viewMode == ViewMode.Collection) {
