@@ -161,19 +161,27 @@ data class OrderBy(var order: Order, val by: By) {
     enum class Order {
         Ascending {
             @Composable
-            override fun icon() {
-                Icon(Icons.Default.ArrowDropUp, "昇順")
+            override fun icon(tint: Color?) {
+                if (tint != null) {
+                    Icon(Icons.Default.ArrowDropUp, "昇順", tint = tint)
+                } else {
+                    Icon(Icons.Default.ArrowDropUp, "昇順")
+                }
             }
         },
         Descending {
             @Composable
-            override fun icon() {
-                Icon(Icons.Default.ArrowDropDown, "降順")
+            override fun icon(tint: Color?) {
+                if (tint != null) {
+                    Icon(Icons.Default.ArrowDropDown, "降順", tint = tint)
+                } else {
+                    Icon(Icons.Default.ArrowDropDown, "降順")
+                }
             }
         };
 
         @Composable
-        abstract fun icon()
+        open fun icon(tint: Color? = null) {}
     }
 
     enum class By {
@@ -193,7 +201,7 @@ data class OrderBy(var order: Order, val by: By) {
                     }
                     onClick(newState)
                 },
-                elevation = null
+                elevation = null,
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
@@ -201,6 +209,8 @@ data class OrderBy(var order: Order, val by: By) {
                     Text(by.name)
                     if (selected) {
                         state.order.icon()
+                    } else {
+                        state.order.icon(Color.Black.copy(alpha = 0f))
                     }
                 }
             }
