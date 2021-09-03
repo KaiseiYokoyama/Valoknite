@@ -178,7 +178,7 @@ fun ScrollCollectionViewer(
         horizontalArrangement = Arrangement.Center,
     ) {
         items(contents) { collection ->
-            Box(Modifier.fillMaxSize()
+            Box(Modifier.padding(16.dp).fillMaxSize()
                 .clickable {
                     onClickCollection(collection)
                 }
