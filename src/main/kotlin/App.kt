@@ -26,7 +26,6 @@ fun App(composeWindow: ComposeWindow) {
             Collection(dirPath)
         })
     }
-    println("App: ${rootCollection.name}")
 
     ViewerContainer(ViewerContainerState.new(rootCollection))
 }

@@ -90,12 +90,16 @@ fun ViewerContainer(
     }
 }
 
-data class ViewerContainerState(
-    var collection: Collection,
-    var contents: List<Media>,
-    var target: Media,
-    var orderBy: OrderBy,
-    var viewMode: ViewMode,
+/**
+ * ViewerContainerの状態
+ * インスタンスを作る時は`ViewerContainerState.new()`を推奨
+ */
+data class ViewerContainerState private constructor(
+    val collection: Collection,
+    val contents: List<Media>,
+    val target: Media,
+    val orderBy: OrderBy,
+    val viewMode: ViewMode,
 ) {
     companion object {
         fun new(collection: Collection): ViewerContainerState {
