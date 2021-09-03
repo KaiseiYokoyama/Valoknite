@@ -1,6 +1,5 @@
 package viewer
 
-import OrderBy
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -31,28 +30,17 @@ enum class ViewMode {
     Single, Scroll,
 }
 
-class Contents(
-    mediaSet: Collection<Media>,
-    orderBy: OrderBy,
-) {
-    val mediaList: List<Media> = mediaSet.sortedWith(orderBy.sorter)
-
-    val size: Int
-        get() = mediaList.size
-}
-
 /**
  * メディアを一つずつ表示するビューア
  */
 @Composable
 fun SingleMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
-    contents: Contents,
+    contents: List<Media>,
     target: Media,
     onViewerChange: (ViewMode, Media) -> Unit
 ) {
-    val mediaList = contents.mediaList
-    var index by remember { mutableStateOf(mediaList.indexOf(target)) }
+    var index by remember { mutableStateOf(contents.indexOf(target)) }
 
     // ズーム関係
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -91,7 +79,7 @@ fun SingleMediaViewer(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                val media = mediaList[index]
+                val media = contents[index]
                 // メディアを一枚ずつ表示
                 if (!zoom) {
                     media.view()
@@ -151,12 +139,11 @@ fun SingleMediaViewer(
 @Composable
 fun ScrollMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
-    contents: Contents,
+    contents: List<Media>,
     target: Media,
     onViewerChange: (ViewMode, Media) -> Unit
 ) {
-    val mediaList = contents.mediaList
-    val index = mediaList.indexOf(target)
+    val index = contents.indexOf(target)
     val scrollState by remember { mutableStateOf(LazyListState(index, 0)) }
 
     LazyRow(
@@ -165,7 +152,7 @@ fun ScrollMediaViewer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        items(mediaList) { item ->
+        items(contents) { item ->
             Box(Modifier.padding(16.dp).clickable {
                 onViewerChange(ViewMode.Single, item)
             }) {
