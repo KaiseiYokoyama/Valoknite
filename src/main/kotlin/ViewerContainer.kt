@@ -30,11 +30,11 @@ fun ViewerContainer(
     collection: Collection,
     changeCollectionTo: (Collection) -> Unit
 ) {
-    var mediaSet = collection.mediaList.toSet()
+    var mediaSet = collection.mediaList
     var orderBy by remember { mutableStateOf(OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)) }
     var viewMode by remember { mutableStateOf(ViewMode.Scroll) }
     val contents = Contents(mediaSet, orderBy)
-    var target by remember { mutableStateOf(contents.mediaList()[0]) }
+    var target by remember { mutableStateOf(contents.mediaList[0]) }
 
     val onViewModeChange = { newMode: ViewMode, media: Media ->
         viewMode = newMode

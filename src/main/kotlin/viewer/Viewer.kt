@@ -31,17 +31,14 @@ enum class ViewMode {
     Single, Scroll,
 }
 
-data class Contents(
-    val mediaSet: Set<Media>,
-    val orderBy: OrderBy,
+class Contents(
+    mediaSet: Collection<Media>,
+    orderBy: OrderBy,
 ) {
-    val size: Int
-        get() = mediaSet.size
+    val mediaList: List<Media> = mediaSet.sortedWith(orderBy.sorter)
 
-    fun mediaList(): List<Media> {
-        println("Contents.mediaList")
-        return mediaSet.sortedWith(orderBy.sorter)
-    }
+    val size: Int
+        get() = mediaList.size
 }
 
 /**
@@ -54,7 +51,7 @@ fun SingleMediaViewer(
     target: Media,
     onViewerChange: (ViewMode, Media) -> Unit
 ) {
-    val mediaList = contents.mediaList()
+    val mediaList = contents.mediaList
     var index by remember { mutableStateOf(mediaList.indexOf(target)) }
 
     // ズーム関係
@@ -158,7 +155,7 @@ fun ScrollMediaViewer(
     target: Media,
     onViewerChange: (ViewMode, Media) -> Unit
 ) {
-    val mediaList = contents.mediaList()
+    val mediaList = contents.mediaList
     val index = mediaList.indexOf(target)
     val scrollState by remember { mutableStateOf(LazyListState(index, 0)) }
 
