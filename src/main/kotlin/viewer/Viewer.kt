@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -153,9 +154,9 @@ fun ScrollMediaViewer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        items(contents) { item ->
+        itemsIndexed(contents) { idx, item ->
             Box(Modifier.padding(16.dp).clickable {
-                onViewerChange(ViewMode.Single, index)
+                onViewerChange(ViewMode.Single, idx)
             }) {
                 item.view()
             }
