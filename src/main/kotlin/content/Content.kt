@@ -4,6 +4,9 @@ import Size
 import androidx.compose.runtime.Composable
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.LocalDateTime
+import java.time.ZoneId
+import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 
@@ -40,5 +43,11 @@ abstract class Content(
         }
 
         return Size(path.size())
+    }
+
+    fun lastMod(): LocalDateTime {
+        val time = path.getLastModifiedTime().toInstant()
+
+        return LocalDateTime.ofInstant(time, ZoneId.systemDefault())
     }
 }
