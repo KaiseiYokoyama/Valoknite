@@ -16,6 +16,7 @@ import content.Collection
 import content.Content
 import content.Media
 import viewer.*
+import viewer.collection.MonoPreviewCollectionViewer
 import java.util.Stack
 import kotlin.io.path.fileSize
 import kotlin.io.path.getLastModifiedTime
@@ -107,7 +108,7 @@ fun ViewerContainer(
                 Box(
                     Modifier.background(Color.Black.copy(alpha = 0.3f))
                 ) {
-                    ScrollCollectionViewer(
+                    MonoPreviewCollectionViewer(
                         contents = state.collection.subCollections,
                         onClickCollection = {
                             state = state.collection(it).viewMode(ViewMode.Scroll)

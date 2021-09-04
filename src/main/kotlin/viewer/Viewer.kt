@@ -208,7 +208,7 @@ fun ScrollCollectionViewer(
     onClickCollection: (Collection) -> Unit,
     onViewerChange: (ViewMode) -> Unit
 ) {
-    Box (modifier) {
+    Box(modifier) {
         LazyRow(
             contentPadding = PaddingValues(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
