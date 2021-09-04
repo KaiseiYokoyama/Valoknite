@@ -1,11 +1,15 @@
 package content
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
@@ -24,6 +28,7 @@ class Collection(
      * 内包するコレクションの一覧
      */
     val subCollections: List<Collection>
+
     /**
      * 内包するメディアの一覧
      */
@@ -58,13 +63,13 @@ class Collection(
             .map { it.getOrThrow() })
 
         mediaList = ArrayList(Files.newDirectoryStream(dir)
-                // ディレクトリ内のエントリを全部メディアにしてみる
-                // メディアでないエントリは当然エラーを返す
-                .map { kotlin.runCatching { Media.build(it) } }
-                // メディアにならなかったものを除外
-                .filter { it.isSuccess }
-                // unwrap
-                .map { it.getOrThrow() })
+            // ディレクトリ内のエントリを全部メディアにしてみる
+            // メディアでないエントリは当然エラーを返す
+            .map { kotlin.runCatching { Media.build(it) } }
+            // メディアにならなかったものを除外
+            .filter { it.isSuccess }
+            // unwrap
+            .map { it.getOrThrow() })
 
         if (subContents.isEmpty()) {
             // コンテンツを持たないコレクションを拒絶
@@ -74,15 +79,18 @@ class Collection(
 
     @Composable
     override fun view() {
-        Card {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+        Card(modifier = Modifier.background(Color.Blue)) {
+            Column(
+                Modifier.background(Color.Red),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // サムネイルアイコン
-                thumbIcon()
                 // タイトル
-                Text(name)
+                Text(name, Modifier.weight(1f, fill = true))
+                // サムネイルアイコン
+                Box(Modifier.weight(9f)) {
+                    thumbIcon()
+                }
             }
         }
     }

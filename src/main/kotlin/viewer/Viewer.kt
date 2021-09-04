@@ -210,11 +210,12 @@ fun ScrollCollectionViewer(
 ) {
     Box (modifier) {
         LazyRow(
+            contentPadding = PaddingValues(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
             items(contents) { collection ->
-                Box(Modifier.padding(16.dp).fillMaxSize()
+                Box(Modifier.padding(8.dp)
                     .clickable {
                         onClickCollection(collection)
                     }
