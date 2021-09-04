@@ -79,25 +79,10 @@ class Collection(
 
     @Composable
     override fun view() {
-        Card(modifier = Modifier.background(Color.Blue)) {
-            Column(
-                Modifier.background(Color.Red),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // タイトル
-                Text(name, Modifier.weight(1f, fill = true))
-                // サムネイルアイコン
-                Box(Modifier.weight(9f)) {
-                    thumbIcon()
-                }
-            }
+        when {
+            mediaList.isNotEmpty() -> mediaList[0].view()
+            subCollections.isNotEmpty() -> subCollections[0].view()
         }
-    }
-
-    @Composable
-    override fun thumbIcon() {
-        subContents[0].thumbIcon()
     }
 }
 

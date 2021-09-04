@@ -30,26 +30,4 @@ abstract class Content(
      */
     @Composable
     abstract fun view()
-
-    /**
-     * コンテンツのサムネイルに使うアイコン
-     */
-    @Composable
-    abstract fun thumbIcon()
-
-    /**
-     * サムネイル表示
-     */
-    @Composable
-    fun viewAsThumbnail() {
-        Column (
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            // サムネイルアイコン
-            thumbIcon()
-            // フォルダ名
-            Text(name)
-        }
-    }
 }
