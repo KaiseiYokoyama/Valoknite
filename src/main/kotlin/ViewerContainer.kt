@@ -112,7 +112,8 @@ fun ViewerContainer(
                         contents = state.collection.subCollections,
                         onClickCollection = {
                             state = state.collection(it).viewMode(ViewMode.Scroll)
-                        }
+                        },
+                        onViewerChange = { newMode -> state = state.viewMode(newMode) }
                     )
                 }
             }
