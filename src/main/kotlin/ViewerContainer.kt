@@ -105,8 +105,7 @@ fun ViewerContainer(
             }
             if (state.viewMode == ViewMode.Collection || state.contents.isEmpty()) {
                 Box(
-                    Modifier.clickable { state = state.viewMode(ViewMode.Scroll) }
-                        .background(Color.Black.copy(alpha = 0.3f))
+                    Modifier.background(Color.Black.copy(alpha = 0.3f))
                 ) {
                     ScrollCollectionViewer(
                         contents = state.collection.subCollections,
