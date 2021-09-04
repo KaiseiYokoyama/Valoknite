@@ -1,5 +1,7 @@
 package viewer
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
@@ -36,7 +38,7 @@ enum class ViewMode {
 /**
  * メディアを一つずつ表示するビューア
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
 fun SingleMediaViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
@@ -51,94 +53,105 @@ fun SingleMediaViewer(
     var zoom by remember { mutableStateOf(false) }
 
     // メディア切り替え関係
-    var mousePosition = Offset.Zero
     val reqr = FocusRequester()
-
     LaunchedEffect(Unit) { reqr.requestFocus() }
+
+    // アニメーション
 
 
     MaterialTheme(
         colors = darkColors()
     ) {
-        Surface {
-            Box(
-                modifier.onSizeChanged { size = it }
-                    .pointerMoveFilter(onMove = {
-                        mousePosition = it
-                        false
-                    })
-                    .onKeyEvent {
-                        if (it.type != KeyEventType.KeyDown) {
-                            false
-                        } else {
-                            when (it.key) {
-                                Key.Escape -> {
-                                    onViewerChange(ViewMode.Scroll, index)
-                                    true
-                                }
-                                Key.DirectionLeft -> {
-                                    val newIndex = kotlin.math.max(index - 1, 0)
-                                    if (index != newIndex) {
-                                        index = newIndex
-                                        zoom = false
-                                    }
-                                    true
-                                }
-                                Key.DirectionRight -> {
-                                    val newIndex = kotlin.math.min(index + 1, contents.size - 1)
-                                    if (index != newIndex) {
-                                        index = newIndex
-                                        zoom = false
-                                    }
-                                    true
-                                }
-                                else -> false
-                            }
-                        }
+        Surface(Modifier.onKeyEvent {
+            if (it.type != KeyEventType.KeyDown) {
+                false
+            } else {
+                when (it.key) {
+                    Key.Escape -> {
+                        onViewerChange(ViewMode.Scroll, index)
+                        true
                     }
-                    .focusRequester(reqr)
-                    .focusable(),
-                contentAlignment = Alignment.Center
-            ) {
-                val media = contents[index]
-                // メディアを一枚ずつ表示
-                Box(Modifier.clickable { zoom = !zoom }) {
-                    if (!zoom) {
-                        media.view()
-                    } else {
-                        if (media is ImageMedia) {
-                            val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
-                            val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
-
-                            val density = LocalDensity.current.run {
-                                1.dp.toPx()
-                            }
-                            val wide = (size.width.toFloat() / size.height.toFloat()
-                                    > media.asset.width.toFloat() / media.asset.height.toFloat())
-                            val modifier = if (wide) {
-                                Modifier.width(size.width.dp / density)
-                                    .height(
-                                        size.width.dp
-                                                * (media.asset.height.toFloat() / media.asset.width.toFloat())
-                                                / density
-                                    )
-                            } else {
-                                Modifier.height(size.height.dp / density)
-                                    .width(
-                                        size.height.dp
-                                                * (media.asset.width.toFloat() / media.asset.height.toFloat())
-                                                / density
-                                    )
-                            }
-                            Box(
-                                Modifier.horizontalScroll(horizontalScrollState)
-                                    .verticalScroll(verticalScrollState)
-                                    .fillMaxSize()
-                            ) {
-                                media.view(modifier)
-                            }
+                    Key.DirectionLeft -> {
+                        val newIndex = kotlin.math.max(index - 1, 0)
+                        if (index != newIndex) {
+                            index = newIndex
+                            zoom = false
+                        }
+                        true
+                    }
+                    Key.DirectionRight -> {
+                        val newIndex = kotlin.math.min(index + 1, contents.size - 1)
+                        if (index != newIndex) {
+                            index = newIndex
+                            zoom = false
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
+            .focusRequester(reqr)
+            .focusable()
+        ) {
+            Box(modifier.onSizeChanged { size = it }, contentAlignment = Alignment.Center) {
+                val density = LocalDensity.current
+                AnimatedContent(
+                    targetState = index,
+                    transitionSpec = {
+                        if (targetState > initialState) {
+                            slideInHorizontally(initialOffsetX = { with(density) { 200.dp.roundToPx() } }) +
+                                    fadeIn() with
+                                    slideOutHorizontally(targetOffsetX = { with(density) { -200.dp.roundToPx() } }) +
+                                    fadeOut()
                         } else {
+                            slideInHorizontally(initialOffsetX = { with(density) { -200.dp.roundToPx() } }) +
+                                    fadeIn() with
+                                    slideOutHorizontally(targetOffsetX = { with(density) { 200.dp.roundToPx() } }) +
+                                    fadeOut()
+                        }.using(SizeTransform(clip = false))
+                    },
+                ) { target ->
+                    // メディアを一枚ずつ表示
+                    val media = contents[index]
+                    Box(Modifier.clickable { zoom = !zoom }) {
+                        if (!zoom) {
                             media.view()
+                        } else {
+                            if (media is ImageMedia) {
+                                val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
+                                val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
+
+                                val density = LocalDensity.current.run {
+                                    1.dp.toPx()
+                                }
+                                val wide = (size.width.toFloat() / size.height.toFloat()
+                                        > media.asset.width.toFloat() / media.asset.height.toFloat())
+                                val modifier = if (wide) {
+                                    Modifier.width(size.width.dp / density)
+                                        .height(
+                                            size.width.dp
+                                                    * (media.asset.height.toFloat() / media.asset.width.toFloat())
+                                                    / density
+                                        )
+                                } else {
+                                    Modifier.height(size.height.dp / density)
+                                        .width(
+                                            size.height.dp
+                                                    * (media.asset.width.toFloat() / media.asset.height.toFloat())
+                                                    / density
+                                        )
+                                }
+                                Box(
+                                    Modifier.horizontalScroll(horizontalScrollState)
+                                        .verticalScroll(verticalScrollState)
+                                        .fillMaxSize()
+                                ) {
+                                    media.view(modifier)
+                                }
+                            } else {
+                                media.view()
+                            }
                         }
                     }
                 }
