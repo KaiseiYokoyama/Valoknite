@@ -1,11 +1,10 @@
 package content
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Text
+import Size
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 
 /**
@@ -30,4 +29,16 @@ abstract class Content(
      */
     @Composable
     abstract fun view()
+
+    fun size(): Size {
+        fun Path.size(): Long {
+            return if (this.isDirectory()) {
+                Files.newDirectoryStream(this).sumOf { it.size() }
+            } else {
+                Files.size(this)
+            }
+        }
+
+        return Size(path.size())
+    }
 }
