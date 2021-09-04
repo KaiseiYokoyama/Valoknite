@@ -62,60 +62,57 @@ fun SingleMediaViewer(
     MaterialTheme(
         colors = darkColors()
     ) {
-        Surface {
-            Box(
-                modifier.onSizeChanged { size = it }
-                    .onKeyEvent {
-                        if (it.type != KeyEventType.KeyDown) {
-                            false
-                        } else {
-                            when (it.key) {
-                                Key.Escape -> {
-                                    onViewerChange(ViewMode.Scroll, index)
-                                    true
-                                }
-                                Key.DirectionLeft -> {
-                                    val newIndex = kotlin.math.max(index - 1, 0)
-                                    if (index != newIndex) {
-                                        index = newIndex
-                                        zoom = false
-                                    }
-                                    true
-                                }
-                                Key.DirectionRight -> {
-                                    val newIndex = kotlin.math.min(index + 1, contents.size - 1)
-                                    if (index != newIndex) {
-                                        index = newIndex
-                                        zoom = false
-                                    }
-                                    true
-                                }
-                                else -> false
-                            }
-                        }
+        Surface(Modifier.onKeyEvent {
+            if (it.type != KeyEventType.KeyDown) {
+                false
+            } else {
+                when (it.key) {
+                    Key.Escape -> {
+                        onViewerChange(ViewMode.Scroll, index)
+                        true
                     }
-                    .focusRequester(reqr)
-                    .focusable(),
-                contentAlignment = Alignment.Center
-            ) {
-                // メディアを一枚ずつ表示
+                    Key.DirectionLeft -> {
+                        val newIndex = kotlin.math.max(index - 1, 0)
+                        if (index != newIndex) {
+                            index = newIndex
+                            zoom = false
+                        }
+                        true
+                    }
+                    Key.DirectionRight -> {
+                        val newIndex = kotlin.math.min(index + 1, contents.size - 1)
+                        if (index != newIndex) {
+                            index = newIndex
+                            zoom = false
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
+            .focusRequester(reqr)
+            .focusable()
+        ) {
+            Box(modifier.onSizeChanged { size = it }, contentAlignment = Alignment.Center) {
                 val density = LocalDensity.current
                 AnimatedContent(
                     targetState = index,
                     transitionSpec = {
                         if (targetState > initialState) {
                             slideInHorizontally(initialOffsetX = { with(density) { 200.dp.roundToPx() } }) +
-                                    fadeIn(0.2f) with
+                                    fadeIn() with
                                     slideOutHorizontally(targetOffsetX = { with(density) { -200.dp.roundToPx() } }) +
-                                    fadeOut(0.2f)
+                                    fadeOut()
                         } else {
                             slideInHorizontally(initialOffsetX = { with(density) { -200.dp.roundToPx() } }) +
-                                    fadeIn(0.2f) with
+                                    fadeIn() with
                                     slideOutHorizontally(targetOffsetX = { with(density) { 200.dp.roundToPx() } }) +
-                                    fadeOut(0.2f)
-                        }
-                    }
+                                    fadeOut()
+                        }.using(SizeTransform(clip = false))
+                    },
                 ) { target ->
+                    // メディアを一枚ずつ表示
                     val media = contents[index]
                     Box(Modifier.clickable { zoom = !zoom }) {
                         if (!zoom) {
