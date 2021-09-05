@@ -1,5 +1,3 @@
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -16,9 +14,8 @@ import content.Collection
 import content.Content
 import content.Media
 import viewer.*
+import viewer.collection.MonoPreviewCollectionViewer
 import java.util.Stack
-import kotlin.io.path.fileSize
-import kotlin.io.path.getLastModifiedTime
 
 /**
  * メディアビューアのコンテナ
@@ -57,16 +54,15 @@ fun ViewerContainer(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.Start,
                     ) {
-                        Text(state.collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(state.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Spacer(Modifier.height(4.dp))
-                        Text(state.collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
+                        Text(state.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
                     }
                     // 戻るボタン
                     if (!ViewerContainerState.history.empty()) {
                         Button(
                             onClick = {
                                 val pop = ViewerContainerState.history.pop()
-                                println("${pop.name}")
                                 state = state.collection(pop, false)
                             },
                             elevation = null,
@@ -93,7 +89,7 @@ fun ViewerContainer(
                         target = state.target,
                         onViewerChange = onViewModeChange
                     )
-                    if (state.collection.subCollections.isNotEmpty()) {
+                    if (state.subCollections.isNotEmpty()) {
                         FloatingActionButton(
                             onClick = { state = state.viewMode(ViewMode.Collection) },
                             Modifier.align(Alignment.BottomEnd).padding(16.dp),
@@ -103,18 +99,17 @@ fun ViewerContainer(
                     }
                 }
             }
-            if (state.viewMode == ViewMode.Collection || state.contents.isEmpty()) {
-                Box(
-                    Modifier.clickable { state = state.viewMode(ViewMode.Scroll) }
-                        .background(Color.Black.copy(alpha = 0.3f))
-                ) {
-                    ScrollCollectionViewer(
-                        contents = state.collection.subCollections,
-                        onClickCollection = {
-                            state = state.collection(it).viewMode(ViewMode.Scroll)
-                        }
-                    )
-                }
+            if (state.viewMode == ViewMode.Collection) {
+                MonoPreviewCollectionViewer(
+                    contents = state.subCollections,
+                    onClickCollection = {
+                        state = state.collection(it).viewMode(ViewMode.Scroll)
+                    },
+                    onViewerChange = { newMode -> state = state.viewMode(newMode) },
+                    orderBy = state.orderBy,
+                    onOrderChange = { newOrder -> state = state.orderBy(newOrder) },
+                    displayFAB = state.contents.isNotEmpty()
+                )
             }
         }
     }
@@ -125,8 +120,9 @@ fun ViewerContainer(
  * インスタンスを作る時は`ViewerContainerState.new()`を推奨
  */
 data class ViewerContainerState private constructor(
-    val collection: Collection,
+    private val collection: Collection,
     val contents: List<Media>,
+    val subCollections: List<Collection>,
     val target: Int,
     val orderBy: OrderBy,
     val viewMode: ViewMode,
@@ -135,31 +131,61 @@ data class ViewerContainerState private constructor(
         val history = Stack<Collection>()
 
         fun new(collection: Collection): ViewerContainerState {
-            val orderBy = OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)
+            val orderBy = OrderBy.DEFAULT
             val mediaList = collection.mediaList.sortedWith(orderBy.sorter)
+            val subCollections = collection.subCollections.sortedWith(orderBy.sorter)
 
             return ViewerContainerState(
                 collection,
                 mediaList,
+                subCollections,
                 0,
                 orderBy,
                 ViewMode.Scroll
             )
+                // validate viewmode
+                .viewMode(ViewMode.Scroll)
         }
     }
 
+    val name = collection.name
+    val path = collection.path
+
     fun target(target: Int) = this.copy(target = target)
-    fun orderBy(orderBy: OrderBy) = this.copy(contents = contents.sortedWith(orderBy.sorter), orderBy = orderBy)
-    fun viewMode(viewMode: ViewMode) = this.copy(viewMode = viewMode)
+
+    fun orderBy(orderBy: OrderBy) = this.copy(
+        contents = contents.sortedWith(orderBy.sorter),
+        subCollections = subCollections.sortedWith(orderBy.sorter),
+        orderBy = orderBy
+    )
+
+    fun viewMode(viewMode: ViewMode): ViewerContainerState {
+        val newMode = when (viewMode) {
+            ViewMode.Scroll, ViewMode.Single -> {
+                if (this.contents.isNotEmpty()) viewMode else ViewMode.Collection
+            }
+            ViewMode.Collection -> {
+                if (this.subCollections.isNotEmpty()) viewMode else ViewMode.Scroll
+            }
+        }
+
+        return this.copy(viewMode = newMode)
+    }
+
     fun collection(collection: Collection, record: Boolean = true): ViewerContainerState {
         if (record) {
             history.push(this.collection)
         }
-        return ViewerContainerState.new(collection).copy(orderBy = orderBy, viewMode = viewMode)
+        return ViewerContainerState.new(collection).viewMode(viewMode).orderBy(orderBy)
     }
 }
 
 data class OrderBy(var order: Order, val by: By) {
+    companion object {
+        val DEFAULT: OrderBy
+            get() = OrderBy(Order.Descending, By.Date)
+    }
+
     enum class Order {
         Ascending {
             @Composable
@@ -183,7 +209,8 @@ data class OrderBy(var order: Order, val by: By) {
         };
 
         @Composable
-        open fun icon(tint: Color? = null) {}
+        open fun icon(tint: Color? = null) {
+        }
     }
 
     enum class By {
@@ -224,8 +251,8 @@ data class OrderBy(var order: Order, val by: By) {
         get() {
             val selector: (Content) -> Comparable<*> = when (by) {
                 By.Name -> { it -> it.name }
-                By.Size -> { it -> it.path.fileSize() }
-                By.Date -> { it -> it.path.getLastModifiedTime() }
+                By.Size -> { it -> it.size.value }
+                By.Date -> { it -> it.lastMod }
             }
 
             return when (order) {

@@ -1,11 +1,13 @@
 package content
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Text
+import Size
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import java.nio.file.Files
 import java.nio.file.Path
+import java.time.LocalDateTime
+import java.time.ZoneId
+import kotlin.io.path.getLastModifiedTime
+import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 
 /**
@@ -26,30 +28,36 @@ abstract class Content(
         }
 
     /**
+     * コレクションのサイズ
+     */
+    val size: Size by lazy { size() }
+
+    /**
+     * コレクションの最終更新日
+     */
+    val lastMod: LocalDateTime by lazy { lastMod() }
+
+    /**
      * コンテンツを表示
      */
     @Composable
     abstract fun view()
 
-    /**
-     * コンテンツのサムネイルに使うアイコン
-     */
-    @Composable
-    abstract fun thumbIcon()
-
-    /**
-     * サムネイル表示
-     */
-    @Composable
-    fun viewAsThumbnail() {
-        Column (
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            // サムネイルアイコン
-            thumbIcon()
-            // フォルダ名
-            Text(name)
+    private fun size(): Size {
+        fun Path.size(): Long {
+            return if (this.isDirectory()) {
+                Files.newDirectoryStream(this).sumOf { it.size() }
+            } else {
+                Files.size(this)
+            }
         }
+
+        return Size(path.size())
+    }
+
+    private fun lastMod(): LocalDateTime {
+        val time = path.getLastModifiedTime().toInstant()
+
+        return LocalDateTime.ofInstant(time, ZoneId.systemDefault())
     }
 }

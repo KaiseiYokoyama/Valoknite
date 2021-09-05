@@ -32,7 +32,20 @@ import content.ImageMedia
 import content.Media
 
 enum class ViewMode {
-    Single, Scroll, Collection,
+    /**
+     * メディア単一表示
+     */
+    Single,
+
+    /**
+     * メディア一斉表示
+     */
+    Scroll,
+
+    /**
+     * コレクション一覧表示
+     */
+    Collection,
 }
 
 /**
@@ -205,21 +218,33 @@ fun ScrollMediaViewer(
 fun ScrollCollectionViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
     contents: List<Collection>,
-    onClickCollection: (Collection) -> Unit
+    onClickCollection: (Collection) -> Unit,
+    onViewerChange: (ViewMode) -> Unit
 ) {
-    LazyRow(
-        modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        items(contents) { collection ->
-            Box(Modifier.padding(16.dp).fillMaxSize()
-                .clickable {
-                    onClickCollection(collection)
+    Box(modifier) {
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            items(contents) { collection ->
+                Box(Modifier.padding(8.dp)
+                    .clickable {
+                        onClickCollection(collection)
+                    }
+                ) {
+                    collection.view()
                 }
-            ) {
-                collection.view()
             }
+        }
+        // FABを表示
+        FloatingActionButton(
+            onClick = {
+                onViewerChange(ViewMode.Scroll)
+            },
+            Modifier.align(Alignment.BottomEnd).padding(16.dp),
+        ) {
+            Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
         }
     }
 }

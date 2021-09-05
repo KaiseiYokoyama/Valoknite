@@ -71,11 +71,6 @@ class ImageMedia constructor(file: Path) : Media(file) {
             modifier,
         )
     }
-
-    @Composable
-    override fun thumbIcon() {
-        view()
-    }
 }
 
 /**
