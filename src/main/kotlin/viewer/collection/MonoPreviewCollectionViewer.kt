@@ -163,13 +163,11 @@ fun MonoPreviewCollectionViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
     contents: List<Collection>,
     onClickCollection: (Collection) -> Unit,
-    onViewerChange: (ViewMode) -> Unit
+    onViewerChange: (ViewMode) -> Unit,
+    orderBy: OrderBy,
+    onOrderChange: (OrderBy) -> Unit,
 ) {
     var target by remember { mutableStateOf(0) }
-
-    // order
-    var orderBy by remember { mutableStateOf(OrderBy.DEFAULT) }
-    var contents by remember { mutableStateOf(contents.sortedWith(orderBy.sorter)) }
 
     // フォーカスを要求
     val reqr = FocusRequester()
@@ -210,8 +208,7 @@ fun MonoPreviewCollectionViewer(
                     ) {
                         stickyHeader {
                             ListHeader(Modifier.weight(1f), orderBy) {
-                                orderBy = it
-                                contents = contents.sortedWith(it.sorter)
+                                onOrderChange(it)
                                 target = 0
                             }
                         }

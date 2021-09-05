@@ -58,9 +58,9 @@ fun ViewerContainer(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.Start,
                     ) {
-                        Text(state.collection.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(state.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Spacer(Modifier.height(4.dp))
-                        Text(state.collection.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
+                        Text(state.path.toString(), fontWeight = FontWeight.Light, fontSize = 8.sp)
                     }
                     // 戻るボタン
                     if (!ViewerContainerState.history.empty()) {
@@ -93,7 +93,7 @@ fun ViewerContainer(
                         target = state.target,
                         onViewerChange = onViewModeChange
                     )
-                    if (state.collection.subCollections.isNotEmpty()) {
+                    if (state.subCollections.isNotEmpty()) {
                         FloatingActionButton(
                             onClick = { state = state.viewMode(ViewMode.Collection) },
                             Modifier.align(Alignment.BottomEnd).padding(16.dp),
@@ -105,11 +105,13 @@ fun ViewerContainer(
             }
             if (state.viewMode == ViewMode.Collection || state.contents.isEmpty()) {
                 MonoPreviewCollectionViewer(
-                    contents = state.collection.subCollections,
+                    contents = state.subCollections,
                     onClickCollection = {
                         state = state.collection(it).viewMode(ViewMode.Scroll)
                     },
-                    onViewerChange = { newMode -> state = state.viewMode(newMode) }
+                    onViewerChange = { newMode -> state = state.viewMode(newMode) },
+                    orderBy = state.orderBy,
+                    onOrderChange = { newOrder -> state = state.orderBy(newOrder) },
                 )
             }
         }
@@ -121,8 +123,9 @@ fun ViewerContainer(
  * インスタンスを作る時は`ViewerContainerState.new()`を推奨
  */
 data class ViewerContainerState private constructor(
-    val collection: Collection,
+    private val collection: Collection,
     val contents: List<Media>,
+    val subCollections: List<Collection>,
     val target: Int,
     val orderBy: OrderBy,
     val viewMode: ViewMode,
@@ -133,10 +136,12 @@ data class ViewerContainerState private constructor(
         fun new(collection: Collection): ViewerContainerState {
             val orderBy = OrderBy.DEFAULT
             val mediaList = collection.mediaList.sortedWith(orderBy.sorter)
+            val subCollections = collection.subCollections.sortedWith(orderBy.sorter)
 
             return ViewerContainerState(
                 collection,
                 mediaList,
+                subCollections,
                 0,
                 orderBy,
                 ViewMode.Scroll
@@ -144,14 +149,24 @@ data class ViewerContainerState private constructor(
         }
     }
 
+    val name = collection.name
+    val path = collection.path
+
     fun target(target: Int) = this.copy(target = target)
-    fun orderBy(orderBy: OrderBy) = this.copy(contents = contents.sortedWith(orderBy.sorter), orderBy = orderBy)
+
+    fun orderBy(orderBy: OrderBy) = this.copy(
+        contents = contents.sortedWith(orderBy.sorter),
+        subCollections = subCollections.sortedWith(orderBy.sorter),
+        orderBy = orderBy
+    )
+
     fun viewMode(viewMode: ViewMode) = this.copy(viewMode = viewMode)
+
     fun collection(collection: Collection, record: Boolean = true): ViewerContainerState {
         if (record) {
             history.push(this.collection)
         }
-        return ViewerContainerState.new(collection).copy(orderBy = orderBy, viewMode = viewMode)
+        return ViewerContainerState.new(collection).copy(viewMode = viewMode).orderBy(orderBy)
     }
 }
 
