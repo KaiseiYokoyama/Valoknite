@@ -176,7 +176,7 @@ data class ViewerContainerState private constructor(
         if (record) {
             history.push(this.collection)
         }
-        return ViewerContainerState.new(collection).viewMode(viewMode).orderBy(orderBy)
+        return ViewerContainerState.new(collection).viewMode(viewMode).orderBy(orderBy).target(0)
     }
 }
 
