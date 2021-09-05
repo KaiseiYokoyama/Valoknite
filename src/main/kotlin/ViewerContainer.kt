@@ -1,5 +1,3 @@
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -18,8 +16,6 @@ import content.Media
 import viewer.*
 import viewer.collection.MonoPreviewCollectionViewer
 import java.util.Stack
-import kotlin.io.path.fileSize
-import kotlin.io.path.getLastModifiedTime
 
 /**
  * メディアビューアのコンテナ
@@ -103,7 +99,7 @@ fun ViewerContainer(
                     }
                 }
             }
-            if (state.viewMode == ViewMode.Collection || state.contents.isEmpty()) {
+            if (state.viewMode == ViewMode.Collection) {
                 MonoPreviewCollectionViewer(
                     contents = state.subCollections,
                     onClickCollection = {
@@ -146,6 +142,8 @@ data class ViewerContainerState private constructor(
                 orderBy,
                 ViewMode.Scroll
             )
+                // validate viewmode
+                .viewMode(ViewMode.Scroll)
         }
     }
 
@@ -160,13 +158,24 @@ data class ViewerContainerState private constructor(
         orderBy = orderBy
     )
 
-    fun viewMode(viewMode: ViewMode) = this.copy(viewMode = viewMode)
+    fun viewMode(viewMode: ViewMode): ViewerContainerState {
+        val newMode = when (viewMode) {
+            ViewMode.Scroll, ViewMode.Single -> {
+                if (this.contents.isNotEmpty()) viewMode else ViewMode.Collection
+            }
+            ViewMode.Collection -> {
+                if (this.subCollections.isNotEmpty()) viewMode else ViewMode.Scroll
+            }
+        }
+
+        return this.copy(viewMode = newMode)
+    }
 
     fun collection(collection: Collection, record: Boolean = true): ViewerContainerState {
         if (record) {
             history.push(this.collection)
         }
-        return ViewerContainerState.new(collection).copy(viewMode = viewMode).orderBy(orderBy)
+        return ViewerContainerState.new(collection).viewMode(viewMode).orderBy(orderBy)
     }
 }
 
@@ -175,7 +184,6 @@ data class OrderBy(var order: Order, val by: By) {
         val DEFAULT: OrderBy
             get() = OrderBy(Order.Descending, By.Date)
     }
-
 
     enum class Order {
         Ascending {

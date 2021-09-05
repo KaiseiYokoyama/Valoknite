@@ -32,7 +32,20 @@ import content.ImageMedia
 import content.Media
 
 enum class ViewMode {
-    Single, Scroll, Collection,
+    /**
+     * メディア単一表示
+     */
+    Single,
+
+    /**
+     * メディア一斉表示
+     */
+    Scroll,
+
+    /**
+     * コレクション一覧表示
+     */
+    Collection,
 }
 
 /**
