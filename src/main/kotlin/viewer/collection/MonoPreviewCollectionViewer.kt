@@ -225,7 +225,10 @@ fun MonoPreviewCollectionViewer(
                                 coroutineScope.launch { scrollState.scrollToItem(0) }
                             }
                         }
-                        itemsIndexed(contents) { idx, content ->
+                        itemsIndexed(
+                            contents,
+                            key = { _, item -> item.path }
+                        ) { idx, content ->
                             ListItem(Modifier.height(20.dp), content, idx == target) { collection, selected ->
                                 if (selected) { // 選択済みのアイテムであれば、そのコレクションを開く
                                     onClickCollection(collection)
