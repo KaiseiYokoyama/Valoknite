@@ -136,7 +136,7 @@ data class ViewerContainerState private constructor(
         val history = Stack<Collection>()
 
         fun new(collection: Collection): ViewerContainerState {
-            val orderBy = OrderBy(OrderBy.Order.Descending, OrderBy.By.Date)
+            val orderBy = OrderBy.DEFAULT
             val mediaList = collection.mediaList.sortedWith(orderBy.sorter)
 
             return ViewerContainerState(
@@ -161,6 +161,12 @@ data class ViewerContainerState private constructor(
 }
 
 data class OrderBy(var order: Order, val by: By) {
+    companion object {
+        val DEFAULT: OrderBy
+            get() = OrderBy(Order.Descending, By.Date)
+    }
+
+
     enum class Order {
         Ascending {
             @Composable
