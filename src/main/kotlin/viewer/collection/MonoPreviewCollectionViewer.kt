@@ -62,6 +62,34 @@ private fun Preview(collection: Collection) {
 }
 
 @Composable
+private fun ListHeader(
+    modifier: Modifier
+) {
+    Surface {
+        Row(modifier) {
+            Text(
+                "Name",
+                Modifier.weight(3f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Light
+            )
+            Text(
+                "Date",
+                Modifier.weight(1f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Light
+            )
+            Text(
+                "Size",
+                Modifier.weight(1f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Light
+            )
+        }
+    }
+}
+
+@Composable
 private fun ListItem(
     modifier: Modifier,
     collection: Collection,
@@ -164,26 +192,7 @@ fun MonoPreviewCollectionViewer(
                         state = scrollState
                     ) {
                         stickyHeader {
-                            Row(Modifier.weight(1f).background(MaterialTheme.colors.background)) {
-                                Text(
-                                    "Name",
-                                    Modifier.weight(3f),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Light
-                                )
-                                Text(
-                                    "Date",
-                                    Modifier.weight(1f),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Light
-                                )
-                                Text(
-                                    "Size",
-                                    Modifier.weight(1f),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Light
-                                )
-                            }
+                            ListHeader(Modifier.weight(1f))
                         }
                         itemsIndexed(contents) { idx, content ->
                             ListItem(Modifier.height(20.dp), content, idx == target) { collection, selected ->
