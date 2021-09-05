@@ -3,6 +3,7 @@ package viewer.collection
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material.*
@@ -11,7 +12,10 @@ import androidx.compose.material.icons.filled.ViewArray
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -102,7 +106,7 @@ private fun ListItem(
  * 左側に選択されたコレクションのプレビュー、
  * 右側にコレクションのリストを表示するビューア
  */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun MonoPreviewCollectionViewer(
     modifier: Modifier = Modifier.fillMaxSize(),
@@ -111,6 +115,10 @@ fun MonoPreviewCollectionViewer(
     onViewerChange: (ViewMode) -> Unit
 ) {
     var target by remember { mutableStateOf(0) }
+
+    // フォーカスを要求
+    val reqr = FocusRequester()
+    LaunchedEffect(Unit) { reqr.requestFocus() }
 
     MaterialTheme(
         colors = darkColors()
@@ -123,9 +131,27 @@ fun MonoPreviewCollectionViewer(
                         Preview(contents[target])
                     }
                     // 右：コレクションリスト
+                    val scrollState = rememberLazyListState()
                     LazyColumn(
-                        Modifier
-                            .weight(3f, true)
+                        Modifier.weight(3f, true)
+                            .onKeyEvent {
+                                if (it.type == KeyEventType.KeyDown) {
+                                    val diffIndex = { diff: Int ->
+                                        target = minOf(maxOf(target + diff, 0), contents.size - 1)
+                                    }
+                                    when (it.key) {
+                                        Key.DirectionDown -> diffIndex(1)
+                                        Key.DirectionUp -> diffIndex(-1)
+                                        Key.Enter -> onClickCollection(contents[target])
+                                    }
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
+                            .focusRequester(reqr)
+                            .focusable(),
+                        state = scrollState
                     ) {
                         stickyHeader {
                             Row(Modifier.weight(1f).background(MaterialTheme.colors.background)) {
