@@ -1,5 +1,6 @@
 package viewer.collection
 
+import OrderBy
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -63,28 +64,40 @@ private fun Preview(collection: Collection) {
 
 @Composable
 private fun ListHeader(
-    modifier: Modifier
+    modifier: Modifier,
+    orderBy: OrderBy,
+    selectOrder: (newOrderBy: OrderBy) -> Unit,
 ) {
-    Surface {
-        Row(modifier) {
+    @Composable
+    fun HeaderIdem(modifier: Modifier, by: OrderBy.By) {
+        val selected = orderBy.by == by
+        Row(
+            modifier.clickable {
+                val newOrder = if (selected) {
+                    orderBy.flipped()
+                } else {
+                    OrderBy.DEFAULT.copy(by = by)
+                }
+                selectOrder(newOrder)
+            },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                "Name",
+                by.toString(),
                 Modifier.weight(3f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Light
             )
-            Text(
-                "Date",
-                Modifier.weight(1f),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Light
-            )
-            Text(
-                "Size",
-                Modifier.weight(1f),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Light
-            )
+            if (selected) {
+                orderBy.order.icon()
+            }
+        }
+    }
+    Surface {
+        Row(modifier.height(30.dp)) {
+            HeaderIdem(Modifier.weight(3f).fillMaxHeight(), OrderBy.By.Name)
+            HeaderIdem(Modifier.weight(1f).fillMaxHeight(), OrderBy.By.Date)
+            HeaderIdem(Modifier.weight(1f).fillMaxHeight(), OrderBy.By.Size)
         }
     }
 }
@@ -106,7 +119,7 @@ private fun ListItem(
     } else {
         MaterialTheme.colors.onSurface
     }
-    
+
     Surface(
         color = color,
         contentColor = contentColor,
@@ -154,6 +167,10 @@ fun MonoPreviewCollectionViewer(
 ) {
     var target by remember { mutableStateOf(0) }
 
+    // order
+    var orderBy by remember { mutableStateOf(OrderBy.DEFAULT) }
+    var contents by remember { mutableStateOf(contents.sortedWith(orderBy.sorter)) }
+
     // フォーカスを要求
     val reqr = FocusRequester()
     LaunchedEffect(Unit) { reqr.requestFocus() }
@@ -192,7 +209,11 @@ fun MonoPreviewCollectionViewer(
                         state = scrollState
                     ) {
                         stickyHeader {
-                            ListHeader(Modifier.weight(1f))
+                            ListHeader(Modifier.weight(1f), orderBy) {
+                                orderBy = it
+                                contents = contents.sortedWith(it.sorter)
+                                target = 0
+                            }
                         }
                         itemsIndexed(contents) { idx, content ->
                             ListItem(Modifier.height(20.dp), content, idx == target) { collection, selected ->
