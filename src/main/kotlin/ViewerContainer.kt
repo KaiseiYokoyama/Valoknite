@@ -67,7 +67,6 @@ fun ViewerContainer(
                         Button(
                             onClick = {
                                 val pop = ViewerContainerState.history.pop()
-                                println("${pop.name}")
                                 state = state.collection(pop, false)
                             },
                             elevation = null,
@@ -231,8 +230,8 @@ data class OrderBy(var order: Order, val by: By) {
         get() {
             val selector: (Content) -> Comparable<*> = when (by) {
                 By.Name -> { it -> it.name }
-                By.Size -> { it -> it.path.fileSize() }
-                By.Date -> { it -> it.path.getLastModifiedTime() }
+                By.Size -> { it -> it.size.value }
+                By.Date -> { it -> it.lastMod }
             }
 
             return when (order) {
