@@ -52,11 +52,11 @@ private fun Preview(collection: Collection) {
             // メディア数
             Detail("Medias", collection.mediaList.size.toString())
             // サイズ
-            Detail("Size", collection.size().toString())
+            Detail("Size", collection.size.toString())
             // 最終更新
             Detail(
                 "Last Modified Date",
-                collection.lastMod().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))
+                collection.lastMod.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))
             )
         }
     }
@@ -87,14 +87,14 @@ private fun ListItem(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                collection.lastMod().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")),
+                collection.lastMod.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")),
                 Modifier.weight(1f, true),
                 fontSize = 12.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                collection.size().toString(),
+                collection.size.toString(),
                 Modifier.weight(1f, true),
                 fontSize = 12.sp,
                 maxLines = 1,
