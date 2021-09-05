@@ -201,7 +201,10 @@ fun ScrollMediaViewer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        itemsIndexed(contents) { idx, item ->
+        itemsIndexed(
+            contents,
+            key = { _, item -> item.path }
+        ) { idx, item ->
             Box(Modifier.padding(16.dp).clickable {
                 onViewerChange(ViewMode.Single, idx)
             }) {
