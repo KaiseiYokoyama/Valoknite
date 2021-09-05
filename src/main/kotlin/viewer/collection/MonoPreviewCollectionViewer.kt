@@ -1,9 +1,6 @@
 package viewer.collection
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material.*
@@ -35,16 +32,18 @@ private fun Preview(collection: Collection) {
             collection.view()
         }
         // コレクションの詳細
-        Column(Modifier.weight(1f)) {
+        val scrollState = rememberScrollState()
+        Column(
+            Modifier.weight(1f).verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             // コレクションネーム
             Text(collection.name, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
 
             @Composable
-            fun Detail(title: String, detail: String) = Box(Modifier.weight(1f)) {
-                Column {
-                    Text(title, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                    Text(detail, fontSize = 12.sp)
-                }
+            fun Detail(title: String, detail: String) = Column {
+                Text(title, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                Text(detail, fontSize = 12.sp)
             }
 
             // パス
@@ -69,8 +68,17 @@ private fun ListItem(
     selected: Boolean,
     onClick: (Collection, selected: Boolean) -> Unit,
 ) {
-    val color = if (selected) { Color.Blue } else { MaterialTheme.colors.surface }
-    val contentColor = if (selected) { Color.White } else { MaterialTheme.colors.onSurface }
+    val color = if (selected) {
+        Color.Blue
+    } else {
+        MaterialTheme.colors.surface
+    }
+    val contentColor = if (selected) {
+        Color.White
+    } else {
+        MaterialTheme.colors.onSurface
+    }
+    
     Surface(
         color = color,
         contentColor = contentColor,
