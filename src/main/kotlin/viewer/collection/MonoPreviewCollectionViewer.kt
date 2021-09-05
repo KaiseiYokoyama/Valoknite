@@ -19,6 +19,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import content.Collection
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import viewer.ViewMode
 import java.time.format.DateTimeFormatter
 
@@ -173,6 +175,15 @@ fun MonoPreviewCollectionViewer(
     val reqr = FocusRequester()
     LaunchedEffect(Unit) { reqr.requestFocus() }
 
+    val onClickCollection = { collection: Collection ->
+        target = 0
+        onClickCollection(collection)
+    }
+    val onOrderChange = { orderBy: OrderBy ->
+        target = 0
+        onOrderChange(orderBy)
+    }
+
     MaterialTheme(
         colors = lightColors()
     ) {
@@ -185,6 +196,7 @@ fun MonoPreviewCollectionViewer(
                     }
                     // 右：コレクションリスト
                     val scrollState = rememberLazyListState()
+                    val coroutineScope = rememberCoroutineScope()
                     LazyColumn(
                         Modifier.weight(3f, true)
                             .onKeyEvent {
@@ -209,7 +221,7 @@ fun MonoPreviewCollectionViewer(
                         stickyHeader {
                             ListHeader(Modifier.weight(1f), orderBy) {
                                 onOrderChange(it)
-                                target = 0
+                                coroutineScope.launch { scrollState.scrollToItem(0) }
                             }
                         }
                         itemsIndexed(contents) { idx, content ->
