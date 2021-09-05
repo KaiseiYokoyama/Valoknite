@@ -104,17 +104,13 @@ fun ViewerContainer(
                 }
             }
             if (state.viewMode == ViewMode.Collection || state.contents.isEmpty()) {
-                Box(
-                    Modifier.background(Color.Black.copy(alpha = 0.3f))
-                ) {
-                    MonoPreviewCollectionViewer(
-                        contents = state.collection.subCollections,
-                        onClickCollection = {
-                            state = state.collection(it).viewMode(ViewMode.Scroll)
-                        },
-                        onViewerChange = { newMode -> state = state.viewMode(newMode) }
-                    )
-                }
+                MonoPreviewCollectionViewer(
+                    contents = state.collection.subCollections,
+                    onClickCollection = {
+                        state = state.collection(it).viewMode(ViewMode.Scroll)
+                    },
+                    onViewerChange = { newMode -> state = state.viewMode(newMode) }
+                )
             }
         }
     }
@@ -189,7 +185,8 @@ data class OrderBy(var order: Order, val by: By) {
         };
 
         @Composable
-        open fun icon(tint: Color? = null) {}
+        open fun icon(tint: Color? = null) {
+        }
     }
 
     enum class By {
