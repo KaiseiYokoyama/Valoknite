@@ -69,36 +69,38 @@ private fun ListItem(
     selected: Boolean,
     onClick: (Collection, selected: Boolean) -> Unit,
 ) {
-    val modifier = if (selected) {
-        modifier.background(Color.Blue)
-    } else {
-        modifier
-    }
-    Row(
-        modifier.clickable { onClick(collection, selected) },
-        verticalAlignment = Alignment.CenterVertically
+    val color = if (selected) { Color.Blue } else { MaterialTheme.colors.surface }
+    val contentColor = if (selected) { Color.White } else { MaterialTheme.colors.onSurface }
+    Surface(
+        color = color,
+        contentColor = contentColor,
     ) {
-        Text(
-            collection.name,
-            Modifier.weight(3f, true),
-            fontSize = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            collection.lastMod().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")),
-            Modifier.weight(1f, true),
-            fontSize = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            collection.size().toString(),
-            Modifier.weight(1f, true),
-            fontSize = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Row(
+            modifier.clickable { onClick(collection, selected) },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                collection.name,
+                Modifier.weight(3f, true),
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                collection.lastMod().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")),
+                Modifier.weight(1f, true),
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                collection.size().toString(),
+                Modifier.weight(1f, true),
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -121,7 +123,7 @@ fun MonoPreviewCollectionViewer(
     LaunchedEffect(Unit) { reqr.requestFocus() }
 
     MaterialTheme(
-        colors = darkColors()
+        colors = lightColors()
     ) {
         Surface {
             Box {
