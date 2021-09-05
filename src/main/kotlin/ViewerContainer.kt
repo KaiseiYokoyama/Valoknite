@@ -108,6 +108,7 @@ fun ViewerContainer(
                     onViewerChange = { newMode -> state = state.viewMode(newMode) },
                     orderBy = state.orderBy,
                     onOrderChange = { newOrder -> state = state.orderBy(newOrder) },
+                    displayFAB = state.contents.isNotEmpty()
                 )
             }
         }

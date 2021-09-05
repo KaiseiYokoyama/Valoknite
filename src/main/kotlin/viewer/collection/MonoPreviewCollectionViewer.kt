@@ -168,6 +168,7 @@ fun MonoPreviewCollectionViewer(
     onViewerChange: (ViewMode) -> Unit,
     orderBy: OrderBy,
     onOrderChange: (OrderBy) -> Unit,
+    displayFAB: Boolean,
 ) {
     var target by remember { mutableStateOf(0) }
 
@@ -236,13 +237,15 @@ fun MonoPreviewCollectionViewer(
                     }
                 }
                 // FABを表示
-                FloatingActionButton(
-                    onClick = {
-                        onViewerChange(ViewMode.Scroll)
-                    },
-                    Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                ) {
-                    Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
+                if (displayFAB) {
+                    FloatingActionButton(
+                        onClick = {
+                            onViewerChange(ViewMode.Scroll)
+                        },
+                        Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                    ) {
+                        Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
+                    }
                 }
             }
         }
