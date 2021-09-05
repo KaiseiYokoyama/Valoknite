@@ -6,6 +6,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import content.Collection
+import kotlinx.coroutines.launch
 import java.awt.datatransfer.DataFlavor
 import java.awt.dnd.DnDConstants
 import java.awt.dnd.DropTarget
@@ -25,16 +27,24 @@ import java.io.File
 
 @Composable
 fun App(composeWindow: ComposeWindow) {
-    val rootCollection: Collection? by remember { mutableStateOf(null) }
-    val loading = mutableStateOf(false)
+    var rootCollection: Collection? by remember { mutableStateOf(null) }
+    // ロード中か否か
+    var loading : Boolean by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     if (rootCollection != null) {
         ViewerContainer(ViewerContainerState.new(rootCollection!!))
-    } else if (loading.value) {
+    } else if (loading) {
         LoadingScreen()
     } else {
         FileDroppableArea(composeWindow) {
-            println(it.absolutePath)
+            // ロードに移行したことをユーザに示す
+            loading = true
+            coroutineScope.launch {
+                rootCollection = Collection.new(it.toPath())
+                // ロードを終えたことをユーザに示す
+                loading = false
+            }
         }
     }
 }
