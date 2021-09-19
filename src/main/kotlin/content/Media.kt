@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.IntSize
 import java.nio.file.Path
 import kotlin.io.path.extension
 import kotlin.io.path.name
@@ -31,6 +32,8 @@ abstract class Media(val file: Path) : Content(file) {
                 .getOrThrow()
         }
     }
+
+    abstract fun mediaType(): String
 }
 
 /**
@@ -52,11 +55,17 @@ class ImageMedia constructor(file: Path) : Media(file) {
         org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()).asImageBitmap()
     }
 
+    val assetSize: IntSize by lazy {
+        IntSize(asset.width, asset.height)
+    }
+
     init {
         if (!extensions.contains(file.extension)) {
             throw NoValidViewerException(file)
         }
     }
+
+    override fun mediaType(): String = "Image"
 
     @Composable
     override fun view() {
