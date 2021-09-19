@@ -5,6 +5,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material.icons.filled.ViewArray
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +16,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import content.ImageMedia
@@ -39,6 +41,9 @@ fun SingleMediaViewer(
     var size by remember { mutableStateOf(IntSize.Zero) }
     var zoom by remember { mutableStateOf(false) }
 
+    // インスペクター
+    var inspect by remember { mutableStateOf(false) }
+
     Background(
         Modifier,
         onFlipImage = {
@@ -50,20 +55,24 @@ fun SingleMediaViewer(
         onChangeImageZoom = { zoom = it },
         onViewerChange = { onViewerChange(it, index) }
     ) {
-        CenteredBox(modifier.onSizeChanged { size = it }) {
+        CenteredBox(
+            modifier.onSizeChanged { size = it }
+        ) {
             AnimatedMedia(index) {
                 // メディアを一枚ずつ表示
                 val media = contents[index]
                 ZoomableMedia(media, zoom, size) { zoom = it }
             }
             // FABを表示
-            FloatingActionButton(
-                onClick = {
-                    onViewerChange(ViewMode.Scroll, index)
-                },
-                Modifier.align(Alignment.BottomEnd).padding(16.dp),
-            ) {
-                Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
+            if (!inspect) {
+                FloatingActionButton(
+                    onClick = {
+                        inspect = true
+                    },
+                    Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                ) {
+                    Icon(Icons.Default.ManageSearch, contentDescription = "インスペクターで詳細を表示")
+                }
             }
         }
     }
