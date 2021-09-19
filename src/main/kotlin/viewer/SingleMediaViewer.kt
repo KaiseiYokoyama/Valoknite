@@ -39,35 +39,31 @@ fun SingleMediaViewer(
     var size by remember { mutableStateOf(IntSize.Zero) }
     var zoom by remember { mutableStateOf(false) }
 
-    MaterialTheme(
-        colors = darkColors()
+    Background(
+        Modifier,
+        onFlipImage = {
+            index = when (it) {
+                FlipImageTo.Left -> max(index - 1, 0)
+                FlipImageTo.Right -> min(index + 1, contents.size - 1)
+            }
+        },
+        onChangeImageZoom = { zoom = it },
+        onViewerChange = { onViewerChange(it, index) }
     ) {
-        Background(
-            Modifier,
-            onFlipImage = {
-                index = when (it) {
-                    FlipImageTo.Left -> max(index - 1, 0)
-                    FlipImageTo.Right -> min(index + 1, contents.size - 1)
-                }
-            },
-            onChangeImageZoom = { zoom = it },
-            onViewerChange = { onViewerChange(it, index) }
-        ) {
-            CenteredBox(modifier.onSizeChanged { size = it }) {
-                AnimatedMedia(index) {
-                    // メディアを一枚ずつ表示
-                    val media = contents[index]
-                    ZoomableMedia(media, zoom, size) { zoom = it }
-                }
-                // FABを表示
-                FloatingActionButton(
-                    onClick = {
-                        onViewerChange(ViewMode.Scroll, index)
-                    },
-                    Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                ) {
-                    Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
-                }
+        CenteredBox(modifier.onSizeChanged { size = it }) {
+            AnimatedMedia(index) {
+                // メディアを一枚ずつ表示
+                val media = contents[index]
+                ZoomableMedia(media, zoom, size) { zoom = it }
+            }
+            // FABを表示
+            FloatingActionButton(
+                onClick = {
+                    onViewerChange(ViewMode.Scroll, index)
+                },
+                Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            ) {
+                Icon(Icons.Default.ViewArray, contentDescription = "一覧表示に戻る")
             }
         }
     }
