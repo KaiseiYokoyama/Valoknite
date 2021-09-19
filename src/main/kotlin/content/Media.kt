@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.IntSize
 import java.nio.file.Path
 import kotlin.io.path.extension
 import kotlin.io.path.name
@@ -52,6 +53,10 @@ class ImageMedia constructor(file: Path) : Media(file) {
      */
     val asset: ImageBitmap by lazy {
         org.jetbrains.skija.Image.makeFromEncoded(file.readBytes()).asImageBitmap()
+    }
+
+    val assetSize: IntSize by lazy {
+        IntSize(asset.width, asset.height)
     }
 
     init {
