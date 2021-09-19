@@ -31,6 +31,8 @@ abstract class Media(val file: Path) : Content(file) {
                 .getOrThrow()
         }
     }
+
+    abstract fun mediaType(): String
 }
 
 /**
@@ -57,6 +59,8 @@ class ImageMedia constructor(file: Path) : Media(file) {
             throw NoValidViewerException(file)
         }
     }
+
+    override fun mediaType(): String = "Image"
 
     @Composable
     override fun view() {
