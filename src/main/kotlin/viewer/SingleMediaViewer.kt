@@ -39,47 +39,19 @@ fun SingleMediaViewer(
     var size by remember { mutableStateOf(IntSize.Zero) }
     var zoom by remember { mutableStateOf(false) }
 
-    // メディア切り替え関係
-    val reqr = FocusRequester()
-    LaunchedEffect(Unit) { reqr.requestFocus() }
-
-    // アニメーション
-
-
     MaterialTheme(
         colors = darkColors()
     ) {
-        Surface(Modifier.onKeyEvent {
-            if (it.type != KeyEventType.KeyDown) {
-                false
-            } else {
-                when (it.key) {
-                    Key.Escape -> {
-                        onViewerChange(ViewMode.Scroll, index)
-                        true
-                    }
-                    Key.DirectionLeft -> {
-                        val newIndex = max(index - 1, 0)
-                        if (index != newIndex) {
-                            index = newIndex
-                            zoom = false
-                        }
-                        true
-                    }
-                    Key.DirectionRight -> {
-                        val newIndex = min(index + 1, contents.size - 1)
-                        if (index != newIndex) {
-                            index = newIndex
-                            zoom = false
-                        }
-                        true
-                    }
-                    else -> false
+        Background(
+            Modifier,
+            onFlipImage = {
+                index = when (it) {
+                    FlipImageTo.Left -> max(index - 1, 0)
+                    FlipImageTo.Right -> min(index + 1, contents.size - 1)
                 }
-            }
-        }
-            .focusRequester(reqr)
-            .focusable()
+            },
+            onChangeImageZoom = { zoom = it },
+            onViewerChange = { onViewerChange(it, index) }
         ) {
             Box(modifier.onSizeChanged { size = it }, contentAlignment = Alignment.Center) {
                 val density = LocalDensity.current
@@ -153,5 +125,55 @@ fun SingleMediaViewer(
                 }
             }
         }
+    }
+}
+
+private enum class FlipImageTo {
+    Left, Right,
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun Background(
+    modifier: Modifier,
+    // ユーザが左右の矢印キーを押して、前もしくは次の画像を見ようとした時
+    onFlipImage: (flipImageTo: FlipImageTo) -> Unit,
+    // ズームの有無を切り替えるとき
+    onChangeImageZoom: (zoom: Boolean) -> Unit,
+    // ユーザがビューアを変更しようとしたとき
+    onViewerChange: (ViewMode) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val reqr = FocusRequester()
+    LaunchedEffect(Unit) { reqr.requestFocus() }
+
+    Surface(
+        modifier.onKeyEvent {
+            if (it.type != KeyEventType.KeyDown) {
+                false
+            } else {
+                when (it.key) {
+                    Key.Escape -> {
+                        onViewerChange(ViewMode.Scroll)
+                        true
+                    }
+                    Key.DirectionLeft -> {
+                        onFlipImage(FlipImageTo.Left)
+                        onChangeImageZoom(false)
+                        true
+                    }
+                    Key.DirectionRight -> {
+                        onFlipImage(FlipImageTo.Right)
+                        onChangeImageZoom(false)
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
+            .focusRequester(reqr)
+            .focusable()
+    ) {
+        content()
     }
 }
