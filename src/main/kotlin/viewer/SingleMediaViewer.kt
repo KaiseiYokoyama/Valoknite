@@ -53,7 +53,7 @@ fun SingleMediaViewer(
             onChangeImageZoom = { zoom = it },
             onViewerChange = { onViewerChange(it, index) }
         ) {
-            Box(modifier.onSizeChanged { size = it }, contentAlignment = Alignment.Center) {
+            CenteredBox(modifier.onSizeChanged { size = it }) {
                 val density = LocalDensity.current
                 AnimatedContent(
                     targetState = index,
@@ -177,3 +177,9 @@ private fun Background(
         content()
     }
 }
+
+@Composable
+private fun CenteredBox(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) = Box(modifier, contentAlignment = Alignment.Center, content = content)
