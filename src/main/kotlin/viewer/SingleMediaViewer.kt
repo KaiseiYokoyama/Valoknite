@@ -54,23 +54,7 @@ fun SingleMediaViewer(
             onViewerChange = { onViewerChange(it, index) }
         ) {
             CenteredBox(modifier.onSizeChanged { size = it }) {
-                val density = LocalDensity.current
-                AnimatedContent(
-                    targetState = index,
-                    transitionSpec = {
-                        if (targetState > initialState) {
-                            slideInHorizontally(initialOffsetX = { with(density) { 200.dp.roundToPx() } }) +
-                                    fadeIn() with
-                                    slideOutHorizontally(targetOffsetX = { with(density) { -200.dp.roundToPx() } }) +
-                                    fadeOut()
-                        } else {
-                            slideInHorizontally(initialOffsetX = { with(density) { -200.dp.roundToPx() } }) +
-                                    fadeIn() with
-                                    slideOutHorizontally(targetOffsetX = { with(density) { 200.dp.roundToPx() } }) +
-                                    fadeOut()
-                        }.using(SizeTransform(clip = false))
-                    },
-                ) { target ->
+                AnimatedMedia(index) {
                     // メディアを一枚ずつ表示
                     val media = contents[index]
                     Box(Modifier.clickable { zoom = !zoom }) {
@@ -183,3 +167,29 @@ private fun CenteredBox(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit
 ) = Box(modifier, contentAlignment = Alignment.Center, content = content)
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun AnimatedMedia(
+    targetState: Int,
+    content: @Composable() AnimatedVisibilityScope.(targetState: Int) -> Unit
+) {
+    val density = LocalDensity.current
+    AnimatedContent(
+        targetState = targetState,
+        transitionSpec = {
+            if (targetState > initialState) {
+                slideInHorizontally(initialOffsetX = { with(density) { 200.dp.roundToPx() } }) +
+                        fadeIn() with
+                        slideOutHorizontally(targetOffsetX = { with(density) { -200.dp.roundToPx() } }) +
+                        fadeOut()
+            } else {
+                slideInHorizontally(initialOffsetX = { with(density) { -200.dp.roundToPx() } }) +
+                        fadeIn() with
+                        slideOutHorizontally(targetOffsetX = { with(density) { 200.dp.roundToPx() } }) +
+                        fadeOut()
+            }.using(SizeTransform(clip = false))
+        },
+        content = content
+    )
+}
