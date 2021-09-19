@@ -57,46 +57,7 @@ fun SingleMediaViewer(
                 AnimatedMedia(index) {
                     // メディアを一枚ずつ表示
                     val media = contents[index]
-                    Box(Modifier.clickable { zoom = !zoom }) {
-                        if (!zoom) {
-                            media.view()
-                        } else {
-                            if (media is ImageMedia) {
-                                val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
-                                val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
-
-                                val density = LocalDensity.current.run {
-                                    1.dp.toPx()
-                                }
-                                val wide = (size.width.toFloat() / size.height.toFloat()
-                                        > media.asset.width.toFloat() / media.asset.height.toFloat())
-                                val modifier = if (wide) {
-                                    Modifier.width(size.width.dp / density)
-                                        .height(
-                                            size.width.dp
-                                                    * (media.asset.height.toFloat() / media.asset.width.toFloat())
-                                                    / density
-                                        )
-                                } else {
-                                    Modifier.height(size.height.dp / density)
-                                        .width(
-                                            size.height.dp
-                                                    * (media.asset.width.toFloat() / media.asset.height.toFloat())
-                                                    / density
-                                        )
-                                }
-                                Box(
-                                    Modifier.horizontalScroll(horizontalScrollState)
-                                        .verticalScroll(verticalScrollState)
-                                        .fillMaxSize()
-                                ) {
-                                    media.view(modifier)
-                                }
-                            } else {
-                                media.view()
-                            }
-                        }
-                    }
+                    ZoomableMedia(media, zoom, size) { zoom = it }
                 }
                 // FABを表示
                 FloatingActionButton(
@@ -192,4 +153,61 @@ private fun AnimatedMedia(
         },
         content = content
     )
+}
+
+@Composable
+private fun ZoomableMedia(
+    media: Media,
+    zoom: Boolean,
+    size: IntSize,
+    onChange: (zoom: Boolean) -> Unit,
+) {
+    // メディアを一枚ずつ表示
+    Box(Modifier.clickable { onChange(!zoom) }) {
+        if (!zoom) {
+            media.view()
+        } else {
+            when (media) {
+                is ImageMedia -> ZoomedImage(media, size)
+                else -> media.view()
+            }
+        }
+    }
+}
+
+@Composable
+private fun ZoomedImage(
+    image: ImageMedia,
+    size: IntSize,
+) {
+    val horizontalScrollState by remember { mutableStateOf(ScrollState(0)) }
+    val verticalScrollState by remember { mutableStateOf(ScrollState(0)) }
+
+    val density = LocalDensity.current.run {
+        1.dp.toPx()
+    }
+    val wide = (size.width.toFloat() / size.height.toFloat()
+            > image.asset.width.toFloat() / image.asset.height.toFloat())
+    val modifier = if (wide) {
+        Modifier.width(size.width.dp / density)
+            .height(
+                size.width.dp
+                        * (image.asset.height.toFloat() / image.asset.width.toFloat())
+                        / density
+            )
+    } else {
+        Modifier.height(size.height.dp / density)
+            .width(
+                size.height.dp
+                        * (image.asset.width.toFloat() / image.asset.height.toFloat())
+                        / density
+            )
+    }
+    Box(
+        Modifier.horizontalScroll(horizontalScrollState)
+            .verticalScroll(verticalScrollState)
+            .fillMaxSize()
+    ) {
+        image.view(modifier)
+    }
 }
