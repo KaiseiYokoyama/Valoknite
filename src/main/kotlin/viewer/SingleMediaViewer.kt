@@ -57,6 +57,7 @@ fun SingleMediaViewer(
     ) {
         CenteredBox(
             modifier.onSizeChanged { size = it }
+                .clickable { onViewerChange(ViewMode.Scroll, index) }
         ) {
             AnimatedMedia(index) {
                 // メディアを一枚ずつ表示
