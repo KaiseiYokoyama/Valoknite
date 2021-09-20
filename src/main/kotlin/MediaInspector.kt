@@ -83,7 +83,10 @@ open class MediaInspector(open val media: Media) {
     }
 
     @Composable
-    protected open fun header() = Surface {
+    protected open fun header() = Surface(
+        color = MaterialTheme.colors.primary,
+        contentColor = contentColorFor(MaterialTheme.colors.primary),
+    ) {
         Column(Modifier.fillMaxWidth().padding(20.dp)) {
             Text(media.name, fontSize = 20.sp)
             Text(media.mediaType(), fontSize = 15.sp)
