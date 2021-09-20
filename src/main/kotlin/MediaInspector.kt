@@ -25,6 +25,7 @@ import content.Content
 import content.ImageMedia
 import content.Media
 import java.awt.Desktop
+import java.net.URI
 import java.time.format.DateTimeFormatter
 
 open class MediaInspector(open val media: Media) {
@@ -100,7 +101,10 @@ open class MediaInspector(open val media: Media) {
             *extraActions().toTypedArray()
         )
 
-        Row(Modifier.padding(horizontal = 5.dp)) {
+        Row(
+            Modifier.padding(horizontal = 5.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             actions.forEach { action -> action.view() }
         }
     }
@@ -200,6 +204,18 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
     }
 
     val artwork: Artwork? by lazy { Artwork.build(id) }
+
+    override fun extraActions(): MutableList<Action> {
+        val actions = super.extraActions()
+        actions.add(
+            Action(
+                Icons.Default.OpenInBrowser,
+                "Pixiv",
+            ) { Desktop.getDesktop().browse(URI("https://www.pixiv.net/artworks/$id")) }
+        )
+
+        return actions
+    }
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun extraComposable(): LazyListScope.() -> Unit {
