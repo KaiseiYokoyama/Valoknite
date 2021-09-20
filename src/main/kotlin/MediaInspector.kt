@@ -153,8 +153,8 @@ open class MediaInspector(open val media: Media) {
             item { headerTitle("Properties") }
             item { properties() }
             item { Spacer(Modifier.height(10.dp)) }
-
             extraComposable()()
+            item { Spacer(Modifier.height(10.dp)) }
         }
     }
 }
