@@ -20,6 +20,7 @@ repositories {
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.materialIconsExtended)
+    implementation(project(":PxParser"))
 }
 
 tasks.withType<KotlinCompile>() {

@@ -50,18 +50,21 @@ fun SingleMediaViewer(
     // インスペクター
     var inspect by remember { mutableStateOf(false) }
 
-    val content = @Composable {
-        Background(
-            Modifier,
-            onFlipImage = {
-                index = when (it) {
-                    FlipImageTo.Left -> max(index - 1, 0)
-                    FlipImageTo.Right -> min(index + 1, contents.size - 1)
-                }
-            },
-            onChangeImageZoom = { zoom = it },
-            onViewerChange = { onViewerChange(it, index) }
-        ) {
+    Background(
+        Modifier,
+        onFlipImage = {
+            index = when (it) {
+                FlipImageTo.Left -> max(index - 1, 0)
+                FlipImageTo.Right -> min(index + 1, contents.size - 1)
+            }
+        },
+        onChangeImageZoom = { zoom = it },
+        onViewerChange = { onViewerChange(it, index) }
+    ) {
+        Row {
+            if (inspect) {
+                MediaInspector.view(Modifier.width(300.dp), contents[index])
+            }
             var size by remember { mutableStateOf(IntSize.Zero) }
             CenteredBox(
                 modifier.onSizeChanged { size = it }
@@ -83,17 +86,6 @@ fun SingleMediaViewer(
                 }
             }
         }
-    }
-
-    Row {
-        if (inspect) {
-            MediaInspector.view(Modifier.width(300.dp), contents[index])
-            Divider(
-                Modifier.fillMaxHeight().width(1.dp),
-                color = MaterialTheme.colors.onBackground.copy(0.2f)
-            )
-        }
-        content()
     }
 }
 
