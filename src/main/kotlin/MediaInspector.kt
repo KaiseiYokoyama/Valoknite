@@ -2,6 +2,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -27,11 +28,11 @@ open class MediaInspector(open val media: Media) {
                 else -> MediaInspector(media)
             }.view(modifier)
         }
-
-        @Composable
-        protected fun headerTitle(title: String) =
-            Text(title, Modifier.padding(start = 5.dp), fontSize = 15.sp, fontWeight = FontWeight(800))
     }
+
+    @Composable
+    protected fun headerTitle(title: String) =
+        Text(title, Modifier.padding(start = 5.dp), fontSize = 15.sp, fontWeight = FontWeight(800))
 
     open class Property(
         val icon: ImageVector,
@@ -113,11 +114,13 @@ open class MediaInspector(open val media: Media) {
             *extraProperties.toTypedArray()
         )
 
-        Column(Modifier.padding(horizontal = 10.dp)) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                properties.forEach { property -> property.view() }
-            }
+        Column(Modifier.padding(horizontal = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            properties.forEach { property -> property.view() }
         }
+    }
+
+    protected open fun extraComposable(): LazyListScope.() -> Unit {
+        return {}
     }
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -128,8 +131,11 @@ open class MediaInspector(open val media: Media) {
         LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             item { header() }
 //        actions()
-            stickyHeader { headerTitle("Properties") }
+            item { headerTitle("Properties") }
             item { properties() }
+            item { Spacer(Modifier.height(10.dp)) }
+
+            extraComposable()()
         }
     }
 }
@@ -180,27 +186,31 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
 
     val artwork: Artwork? by lazy { Artwork.build(id) }
 
-    override fun extraProperties(): MutableList<MediaInspector.Property> {
-        val exProps = super.extraProperties()
+    @OptIn(ExperimentalFoundationApi::class)
+    override fun extraComposable(): LazyListScope.() -> Unit {
+        val artwork = artwork ?: return {}
+        val illust = artwork.illust[id] ?: return {}
+        val user = artwork.user[illust.userId] ?: return {}
 
-        val artwork = artwork ?: return exProps
-        val illust = artwork.illust[id] ?: return exProps
-        val user = artwork.user[illust.userId] ?: return exProps
-
-        exProps.add(
+        val list = mutableListOf(
             Property(
                 Icons.Default.Person,
                 "作者",
-            ) { Text(user.name) }
-        )
-
-        exProps.add(
+            ) { Text(user.name) },
             Property(
                 Icons.Default.Title,
                 "タイトル",
             ) { Text(illust.title) }
         )
 
-        return exProps
+        return {
+            item { headerTitle("Pixiv Artwork Properties") }
+            item {
+                Column(Modifier.padding(horizontal = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    list.forEach { property -> property.view() }
+                }
+            }
+            super.extraComposable()
+        }
     }
 }
