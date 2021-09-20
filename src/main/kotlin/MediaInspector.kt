@@ -27,11 +27,25 @@ open class MediaInspector(open val media: Media) {
         }
     }
 
-    data class Property(
+    open class Property(
         val icon: ImageVector,
         val description: String,
         val content: @Composable () -> Unit,
-    )
+    ) {
+        @Composable
+        open fun color(): Color = MaterialTheme.colors.primary
+
+        @Composable
+        fun view() {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(icon, description, tint = color())
+                content()
+            }
+        }
+    }
 
 //    data class Action(
 //        val icon: ImageVector,
@@ -95,15 +109,7 @@ open class MediaInspector(open val media: Media) {
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                properties.forEach { property ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(property.icon, property.description, tint = MaterialTheme.colors.primary)
-                        property.content()
-                    }
-                }
+                properties.forEach { property -> property.view() }
             }
         }
     }
@@ -140,6 +146,15 @@ open class ImageInspector protected constructor(override val media: ImageMedia) 
 }
 
 class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) : ImageInspector(media) {
+    class Property(
+        icon: ImageVector,
+        description: String,
+        content: @Composable () -> Unit
+    ) : MediaInspector.Property(icon, description, content) {
+        @Composable
+        override fun color(): Color = Color(0x01, 0x96, 0xf9)
+    }
+
     companion object {
         val regexPattern = Regex("""^(\d+)_p(\d+)\.(.*)""")
 
@@ -157,7 +172,7 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
 
     val artwork: Artwork? by lazy { Artwork.build(id) }
 
-    override fun extraProperties(): MutableList<Property> {
+    override fun extraProperties(): MutableList<MediaInspector.Property> {
         val exProps = super.extraProperties()
 
         val artwork = artwork ?: return exProps
