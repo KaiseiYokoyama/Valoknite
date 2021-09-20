@@ -200,7 +200,18 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
             Property(
                 Icons.Default.Title,
                 "タイトル",
-            ) { Text(illust.title) }
+            ) { Text(illust.title) },
+            Property(
+                Icons.Default.Label,
+                "説明",
+            ) {
+                val tags = illust.tags.tags.map { it.tag }.joinToString(" #", "#")
+                Text("$tags", color = Color(0x01, 0x96, 0xf9))
+            },
+            Property(
+                Icons.Default.Message,
+                "説明",
+            ) { Text(illust.description) },
         )
 
         return {
