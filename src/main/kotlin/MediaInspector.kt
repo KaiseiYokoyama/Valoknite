@@ -58,7 +58,9 @@ open class MediaInspector(open val media: Media) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(icon, description, tint = color())
-                content()
+                SelectionContainer {
+                    content()
+                }
             }
         }
     }
@@ -147,7 +149,6 @@ open class MediaInspector(open val media: Media) {
     protected fun view(modifier: Modifier) = Surface(
         modifier.fillMaxHeight(),
     ) {
-        SelectionContainer {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 item { header() }
                 item { actions() }
@@ -160,7 +161,6 @@ open class MediaInspector(open val media: Media) {
             }
         }
     }
-}
 
 open class ImageInspector protected constructor(override val media: ImageMedia) : MediaInspector(media) {
     companion object {
