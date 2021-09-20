@@ -1,4 +1,5 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -12,13 +13,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import content.Content
 import content.ImageMedia
 import content.Media
+import java.awt.Desktop
 import java.time.format.DateTimeFormatter
 
 open class MediaInspector(open val media: Media) {
@@ -56,11 +62,24 @@ open class MediaInspector(open val media: Media) {
         }
     }
 
-//    data class Action(
-//        val icon: ImageVector,
-//        val description: String,
-//        val onClick: @Composable () -> Unit,
-//    )
+    data class Action(
+        val icon: ImageVector,
+        val description: String,
+        val onClick: () -> Unit,
+    ) {
+        @Composable
+        fun view() {
+            TextButton(onClick) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Icon(icon, description)
+                    Text(description.uppercase(), fontWeight = FontWeight(600))
+                }
+            }
+        }
+    }
 
     @Composable
     protected open fun header() = Surface {
@@ -70,30 +89,21 @@ open class MediaInspector(open val media: Media) {
         }
     }
 
-//    @Composable
-//    protected fun actions(extraActions: Array<Action> = arrayOf()) = Column {
-//        val actions = listOf(
-//            Action(Icons.Default.ContentCopy, "Copy Path") {
-//                LocalClipboardManager.current.setText(
-//                    AnnotatedString(media.path.toString())
-//                )
-//            },
-//            *extraActions
-//        )
-//
-//        Row {
-//            actions.forEach { action ->
-//                TextButton(
-//                    onClick = { action.onClick() },
-//                ) {
-//                    Column {
-//                        Icon(action.icon, action.description)
-//                        Text(action.description)
-//                    }
-//                }
-//            }
-//        }
-//    }
+    protected open fun extraActions() = mutableListOf<Action>()
+
+    @Composable
+    protected fun actions() = Column {
+        val actions = listOf(
+            Action(Icons.Default.OpenInNew, "Open") {
+                Desktop.getDesktop().browseFileDirectory(media.path.toFile())
+            },
+            *extraActions().toTypedArray()
+        )
+
+        Row(Modifier.padding(horizontal = 5.dp)) {
+            actions.forEach { action -> action.view() }
+        }
+    }
 
     protected open fun extraProperties() = mutableListOf<Property>()
 
@@ -131,9 +141,10 @@ open class MediaInspector(open val media: Media) {
         modifier.fillMaxHeight(),
     ) {
         SelectionContainer {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 item { header() }
-//        actions()
+                item { actions() }
+                item { Divider(Modifier.fillMaxWidth().padding(vertical = 5.dp)) }
                 item { headerTitle("Properties") }
                 item { properties() }
                 item { Spacer(Modifier.height(10.dp)) }
