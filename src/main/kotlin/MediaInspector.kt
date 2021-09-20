@@ -27,6 +27,8 @@ import content.ImageMedia
 import content.Media
 import java.awt.Desktop
 import java.net.URI
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 open class MediaInspector(open val media: Media) {
@@ -239,11 +241,19 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
             ) { Text(illust.title) },
             Property(
                 Icons.Default.Label,
-                "説明",
+                "タグ",
             ) {
                 val tags = illust.tags.tags.map { it.tag }.joinToString(" #", "#")
                 Text("$tags", color = Color(0x01, 0x96, 0xf9))
             },
+            Property(
+                Icons.Default.Update,
+                "アップロード日",
+            ) {
+                val dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+                val dt = LocalDateTime.ofInstant(illust.uploadDate.toInstant(), ZoneId.systemDefault())
+                Text(dt.format(dtf))
+            }
         )
 
         val desc = illust.planeDescription
