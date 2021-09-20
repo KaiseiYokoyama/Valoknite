@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import content.Content
 import content.ImageMedia
 import content.Media
@@ -147,20 +148,21 @@ open class MediaInspector(open val media: Media) {
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     protected fun view(modifier: Modifier) = Surface(
-        modifier.fillMaxHeight(),
+        modifier.fillMaxHeight().zIndex(20f),
+        elevation = 10.dp,
     ) {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                item { header() }
-                item { actions() }
-                item { Divider(Modifier.fillMaxWidth().padding(vertical = 5.dp)) }
-                item { headerTitle("Properties") }
-                item { properties() }
-                item { Spacer(Modifier.height(10.dp)) }
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            item { header() }
+            item { actions() }
+            item { Divider(Modifier.fillMaxWidth().padding(vertical = 5.dp)) }
+            item { headerTitle("Properties") }
+            item { properties() }
+            item { Spacer(Modifier.height(10.dp)) }
 
-                extraComposable()()
-            }
+            extraComposable()()
         }
     }
+}
 
 open class ImageInspector protected constructor(override val media: ImageMedia) : MediaInspector(media) {
     companion object {

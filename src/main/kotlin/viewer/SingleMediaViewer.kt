@@ -64,10 +64,6 @@ fun SingleMediaViewer(
         Row {
             if (inspect) {
                 MediaInspector.view(Modifier.width(300.dp), contents[index])
-                Divider(
-                    Modifier.fillMaxHeight().width(1.dp),
-                    color = MaterialTheme.colors.onBackground.copy(0.2f)
-                )
             }
             var size by remember { mutableStateOf(IntSize.Zero) }
             CenteredBox(
