@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -211,11 +212,17 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
                 val tags = illust.tags.tags.map { it.tag }.joinToString(" #", "#")
                 Text("$tags", color = Color(0x01, 0x96, 0xf9))
             },
-            Property(
-                Icons.Default.Message,
-                "説明",
-            ) { Text(illust.description) },
         )
+
+        val desc = illust.planeDescription
+        if (!desc.isEmpty()) {
+            list.add(
+                Property(
+                    Icons.Default.Message,
+                    "説明",
+                ) { Text(desc) }
+            )
+        }
 
         return {
             item { headerTitle("Pixiv Artwork Properties") }
