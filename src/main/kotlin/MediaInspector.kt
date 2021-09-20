@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import content.Content
 import content.ImageMedia
 import content.Media
 import java.time.format.DateTimeFormatter
@@ -20,7 +21,7 @@ open class MediaInspector(open val media: Media) {
         @Composable
         fun view(modifier: Modifier = Modifier, media: Media) {
             when (media) {
-                is ImageMedia -> ImageInspector(media)
+                is ImageMedia -> ImageInspector.build(media)
                 else -> MediaInspector(media)
             }.view(modifier)
         }
@@ -71,8 +72,11 @@ open class MediaInspector(open val media: Media) {
 //        }
 //    }
 
+    protected open fun extraProperties() = mutableListOf<Property>()
+
     @Composable
-    protected fun properties(extraProperties: MutableList<Property>) =
+    private fun properties() {
+        val extraProperties = extraProperties()
         Column(Modifier.padding(horizontal = 10.dp)) {
             val properties = listOf(
                 Property(Icons.Default.LocationOn, "パス") {
@@ -102,9 +106,7 @@ open class MediaInspector(open val media: Media) {
                 }
             }
         }
-
-    @Composable
-    protected open fun properties() = properties(mutableListOf())
+    }
 
     @Composable
     protected fun view(modifier: Modifier) = Surface(
@@ -118,15 +120,64 @@ open class MediaInspector(open val media: Media) {
     }
 }
 
-class ImageInspector(override val media: ImageMedia) : MediaInspector(media) {
-    @Composable
-    override fun properties() {
-        val extraProperties = mutableListOf(
+open class ImageInspector protected constructor(override val media: ImageMedia) : MediaInspector(media) {
+    companion object {
+        fun build(media: ImageMedia): ImageInspector = PixivIllustInspector.build(media) ?: ImageInspector(media)
+    }
+
+    override fun extraProperties(): MutableList<Property> {
+        val exProps = super.extraProperties()
+        exProps.add(
+            0,
             Property(
                 Icons.Default.Transform,
                 "画像のサイズ"
             ) { Text("${media.assetSize.width} x ${media.assetSize.height}") }
         )
-        super.properties(extraProperties)
+
+        return exProps
+    }
+}
+
+class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) : ImageInspector(media) {
+    companion object {
+        val regexPattern = Regex("""^(\d+)_p(\d+)\.(.*)""")
+
+        fun hasValidPixivId(content: Content): Boolean {
+            return regexPattern.matches(content.name)
+        }
+
+        fun build(media: ImageMedia): PixivIllustInspector? = if (!hasValidPixivId(media)) {
+            null
+        } else {
+            val groups = regexPattern.find(media.name)!!.groups
+            PixivIllustInspector(media, groups[1]!!.value, groups[2]!!.value.toInt())
+        }
+    }
+
+    val artwork: Artwork? by lazy { Artwork.build(id) }
+
+    override fun extraProperties(): MutableList<Property> {
+        val exProps = super.extraProperties()
+
+        val artwork = artwork ?: return exProps
+        val illust = artwork.illust[id] ?: return exProps
+        val user = artwork.user[illust.userId] ?: return exProps
+
+        exProps.add(
+            Property(
+                Icons.Default.Person,
+                "作者",
+            ) { Text(user.name) }
+        )
+
+        exProps.add(
+            Property(
+                Icons.Default.Title,
+                "タイトル",
+            ) { Text(illust.title) }
+        )
+
+        return exProps
     }
 }
