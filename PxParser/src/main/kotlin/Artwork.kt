@@ -57,7 +57,12 @@ data class Illust(
     val bookmarkCount: Int,
     val likeCount: Int,
     val viewCount: Int,
-)
+) {
+    val planeDescription: String
+        get() {
+            return Jsoup.parse(description).wholeText()
+        }
+}
 
 @Serializable
 data class UserIllust(

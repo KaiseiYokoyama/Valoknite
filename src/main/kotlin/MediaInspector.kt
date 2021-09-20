@@ -3,6 +3,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -128,14 +129,16 @@ open class MediaInspector(open val media: Media) {
     protected fun view(modifier: Modifier) = Surface(
         modifier.fillMaxHeight(),
     ) {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            item { header() }
+        SelectionContainer {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                item { header() }
 //        actions()
-            item { headerTitle("Properties") }
-            item { properties() }
-            item { Spacer(Modifier.height(10.dp)) }
+                item { headerTitle("Properties") }
+                item { properties() }
+                item { Spacer(Modifier.height(10.dp)) }
 
-            extraComposable()()
+                extraComposable()()
+            }
         }
     }
 }
