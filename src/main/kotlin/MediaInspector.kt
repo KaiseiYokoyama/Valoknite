@@ -1,14 +1,16 @@
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import content.Content
@@ -25,6 +27,10 @@ open class MediaInspector(open val media: Media) {
                 else -> MediaInspector(media)
             }.view(modifier)
         }
+
+        @Composable
+        protected fun headerTitle(title: String) =
+            Text(title, Modifier.padding(start = 5.dp), fontSize = 15.sp, fontWeight = FontWeight(800))
     }
 
     open class Property(
@@ -91,37 +97,39 @@ open class MediaInspector(open val media: Media) {
     @Composable
     private fun properties() {
         val extraProperties = extraProperties()
-        Column(Modifier.padding(horizontal = 10.dp)) {
-            val properties = listOf(
-                Property(Icons.Default.LocationOn, "パス") {
-                    Text(media.path.toString())
-                },
-                Property(Icons.Default.DataUsage, "サイズ") {
-                    Text(media.size.toString())
-                },
-                Property(Icons.Default.AccessTime, "更新日時") {
-                    Text(
-                        media.lastMod
-                            .format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))
-                    )
-                },
-                *extraProperties.toTypedArray()
-            )
+        val properties = listOf(
+            Property(Icons.Default.LocationOn, "パス") {
+                Text(media.path.toString())
+            },
+            Property(Icons.Default.DataUsage, "サイズ") {
+                Text(media.size.toString())
+            },
+            Property(Icons.Default.AccessTime, "更新日時") {
+                Text(
+                    media.lastMod
+                        .format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"))
+                )
+            },
+            *extraProperties.toTypedArray()
+        )
 
+        Column(Modifier.padding(horizontal = 10.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 properties.forEach { property -> property.view() }
             }
         }
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     protected fun view(modifier: Modifier) = Surface(
         modifier.fillMaxHeight(),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            header()
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            item { header() }
 //        actions()
-            properties()
+            stickyHeader { headerTitle("Properties") }
+            item { properties() }
         }
     }
 }
