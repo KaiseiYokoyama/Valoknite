@@ -16,4 +16,5 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.2.1")
+    implementation("org.jsoup:jsoup:1.14.2")
 }
