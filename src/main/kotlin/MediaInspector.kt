@@ -2,6 +2,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -54,9 +55,7 @@ open class MediaInspector(open val media: Media) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(icon, description, tint = color())
-                SelectionContainer {
-                    content()
-                }
+                content()
             }
         }
     }
@@ -249,13 +248,21 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
             }
         )
 
-        val desc = illust.planeDescription
-        if (!desc.isEmpty()) {
+        val desc = illust.descriptionDoc.toAnnotatedString()
+        if (desc.isNotEmpty()) {
             list.add(
                 Property(
                     Icons.Default.Message,
                     "説明",
-                ) { Text(desc) }
+                ) {
+                    ClickableText(desc) { offset ->
+                        desc.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                val url = it.item
+                                Desktop.getDesktop().browse(URI(url))
+                            }
+                    }
+                }
             )
         }
 

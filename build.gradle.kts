@@ -20,6 +20,7 @@ repositories {
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.materialIconsExtended)
+    implementation("org.jsoup:jsoup:1.14.2")
     implementation(project(":PxParser"))
 }
 
