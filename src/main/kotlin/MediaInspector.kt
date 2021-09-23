@@ -1,9 +1,8 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -220,6 +220,7 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
     @OptIn(ExperimentalFoundationApi::class)
     override fun extraComposable(): LazyListScope.() -> Unit {
         var list = mutableListOf<Property>()
+        var latestPosts = @Composable {}
 
         pixivClient.onSuccess {
             val artwork = it.artwork
@@ -269,6 +270,33 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
                     }
                 )
             }
+
+            val latestIllusts = illust.userIllusts.toList()
+                .mapNotNull { (_, v) -> v }
+                .sortedByDescending { ui -> ui.updateDate }
+                .toMutableList()
+
+            latestPosts = @Composable {
+                Text(
+                    "${user.name}先生の最近の作品",
+                    Modifier.padding(start = 5.dp),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight(800)
+                )
+                LazyRow(
+                    Modifier.padding(10.dp),
+                    LazyListState(0,0),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    items(latestIllusts) { illust ->
+                        Image(
+                            org.jetbrains.skija.Image.makeFromEncoded(it.getImageAsBytes(illust.url)).asImageBitmap(),
+                            illust.title,
+                            Modifier,
+                        )
+                    }
+                }
+            }
         }
             .onFailure {
                 when (it) {
@@ -280,7 +308,8 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
                             ) { Text("この作品は削除されたか、存在しません。") }
                         )
                     }
-                    else -> {}
+                    else -> {
+                    }
                 }
             }
 
@@ -291,6 +320,7 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
                     list.forEach { property -> property.view() }
                 }
             }
+            item { latestPosts() }
             super.extraComposable()
         }
     }
