@@ -285,7 +285,7 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
                 )
                 LazyRow(
                     Modifier.padding(10.dp),
-                    LazyListState(0,0),
+                    LazyListState(0, 0),
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     items(latestIllusts) { illust ->
