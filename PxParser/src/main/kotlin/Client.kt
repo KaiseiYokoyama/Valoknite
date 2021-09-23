@@ -16,7 +16,7 @@ class Client private constructor(id: IllustId) {
     }
 
     init {
-        val url = "https://www.pixiv.net/artworks/$id";
+        val url = PxParams.artworkPageUrl(id);
         val doc = session.newRequest()
             .url(url)
             .get()
@@ -29,7 +29,7 @@ class Client private constructor(id: IllustId) {
 
     fun getImageAsBytes(url: String): ByteArray {
         return session.url(url)
-            .referrer("https://www.pixiv.net/")
+            .referrer(PxParams.referer())
             .ignoreContentType(true)
             .execute()
             .bodyAsBytes()

@@ -1,5 +1,6 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.text.ClickableText
@@ -292,7 +293,12 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
                         Image(
                             org.jetbrains.skija.Image.makeFromEncoded(it.getImageAsBytes(illust.url)).asImageBitmap(),
                             illust.title,
-                            Modifier,
+                            Modifier.clickable {
+                                Desktop.getDesktop()
+                                    .browse(
+                                        URI(PxParams.artworkPageUrl(illust.id))
+                                    )
+                            },
                         )
                     }
                 }
