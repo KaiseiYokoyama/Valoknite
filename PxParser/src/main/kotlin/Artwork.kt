@@ -20,17 +20,7 @@ data class Artwork(
     val timestamp: Date,
     val illust: Map<IllustId, Illust>,
     val user: Map<UserId, User>,
-) {
-    companion object {
-        fun build(id: IllustId): Artwork? {
-            val doc = Jsoup.connect("https://www.pixiv.net/artworks/$id").get()
-            val meta = doc.selectFirst("#meta-preload-data") ?: return null
-            val json = meta.attr("content")
-
-            return Json { ignoreUnknownKeys = true }.decodeFromString<Artwork>(json)
-        }
-    }
-}
+)
 
 @Serializable
 data class User(
