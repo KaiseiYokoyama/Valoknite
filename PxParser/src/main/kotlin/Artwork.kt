@@ -6,6 +6,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -19,17 +20,7 @@ data class Artwork(
     val timestamp: Date,
     val illust: Map<IllustId, Illust>,
     val user: Map<UserId, User>,
-) {
-    companion object {
-        fun build(id: IllustId): Artwork? {
-            val doc = Jsoup.connect("https://www.pixiv.net/artworks/$id").get()
-            val meta = doc.selectFirst("#meta-preload-data") ?: return null
-            val json = meta.attr("content")
-
-            return Json { ignoreUnknownKeys = true }.decodeFromString<Artwork>(json)
-        }
-    }
-}
+)
 
 @Serializable
 data class User(
@@ -58,10 +49,9 @@ data class Illust(
     val likeCount: Int,
     val viewCount: Int,
 ) {
-    val planeDescription: String
-        get() {
-            return Jsoup.parse(description).wholeText()
-        }
+    val descriptionDoc: Element by lazy {
+        Jsoup.parseBodyFragment(description).body()
+    }
 }
 
 @Serializable

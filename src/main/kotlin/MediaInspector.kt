@@ -1,8 +1,9 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -18,6 +20,7 @@ import androidx.compose.ui.zIndex
 import content.Content
 import content.ImageMedia
 import content.Media
+import org.jsoup.HttpStatusException
 import java.awt.Desktop
 import java.net.URI
 import java.time.LocalDateTime
@@ -54,9 +57,7 @@ open class MediaInspector(open val media: Media) {
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(icon, description, tint = color())
-                SelectionContainer {
-                    content()
-                }
+                content()
             }
         }
     }
@@ -203,7 +204,7 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
         }
     }
 
-    val artwork: Artwork? by lazy { Artwork.build(id) }
+    val pixivClient: Result<Client> = Client.connect(id)
 
     override fun extraActions(): MutableList<Action> {
         val actions = super.extraActions()
@@ -219,45 +220,104 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun extraComposable(): LazyListScope.() -> Unit {
-        val artwork = artwork ?: return {}
-        val illust = artwork.illust[id] ?: return {}
-        val user = artwork.user[illust.userId] ?: return {}
+        var list = mutableListOf<Property>()
+        var latestPosts = @Composable {}
 
-        val list = mutableListOf(
-            Property(
-                Icons.Default.Person,
-                "作者",
-            ) { Text(user.name) },
-            Property(
-                Icons.Default.Title,
-                "タイトル",
-            ) { Text(illust.title) },
-            Property(
-                Icons.Default.Label,
-                "タグ",
-            ) {
-                val tags = illust.tags.tags.map { it.tag }.joinToString(" #", "#")
-                Text("$tags", color = Color(0x01, 0x96, 0xf9))
-            },
-            Property(
-                Icons.Default.Update,
-                "アップロード日",
-            ) {
-                val dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
-                val dt = LocalDateTime.ofInstant(illust.uploadDate.toInstant(), ZoneId.systemDefault())
-                Text(dt.format(dtf))
-            }
-        )
+        pixivClient.onSuccess {
+            val artwork = it.artwork
+            val illust = artwork.illust[id] ?: return {}
+            val user = artwork.user[illust.userId] ?: return {}
 
-        val desc = illust.planeDescription
-        if (!desc.isEmpty()) {
-            list.add(
+            list = mutableListOf(
                 Property(
-                    Icons.Default.Message,
-                    "説明",
-                ) { Text(desc) }
+                    Icons.Default.Person,
+                    "作者",
+                ) { Text(user.name) },
+                Property(
+                    Icons.Default.Title,
+                    "タイトル",
+                ) { Text(illust.title) },
+                Property(
+                    Icons.Default.Label,
+                    "タグ",
+                ) {
+                    val tags = illust.tags.tags.map { it.tag }.joinToString(" #", "#")
+                    Text("$tags", color = Color(0x01, 0x96, 0xf9))
+                },
+                Property(
+                    Icons.Default.Update,
+                    "アップロード日",
+                ) {
+                    val dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+                    val dt = LocalDateTime.ofInstant(illust.uploadDate.toInstant(), ZoneId.systemDefault())
+                    Text(dt.format(dtf))
+                }
             )
+
+            val desc = illust.descriptionDoc.toAnnotatedString()
+            if (desc.isNotEmpty()) {
+                list.add(
+                    Property(
+                        Icons.Default.Message,
+                        "説明",
+                    ) {
+                        ClickableText(desc) { offset ->
+                            desc.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                                .firstOrNull()?.let {
+                                    val url = it.item
+                                    Desktop.getDesktop().browse(URI(url))
+                                }
+                        }
+                    }
+                )
+            }
+
+            val latestIllusts = illust.userIllusts.toList()
+                .mapNotNull { (_, v) -> v }
+                .sortedByDescending { ui -> ui.updateDate }
+                .toMutableList()
+
+            latestPosts = @Composable {
+                Text(
+                    "${user.name}先生の最近の作品",
+                    Modifier.padding(start = 5.dp),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight(800)
+                )
+                LazyRow(
+                    Modifier.padding(10.dp),
+                    LazyListState(0, 0),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    items(latestIllusts) { illust ->
+                        Image(
+                            org.jetbrains.skija.Image.makeFromEncoded(it.getImageAsBytes(illust.url)).asImageBitmap(),
+                            illust.title,
+                            Modifier.clickable {
+                                Desktop.getDesktop()
+                                    .browse(
+                                        URI(PxParams.artworkPageUrl(illust.id))
+                                    )
+                            },
+                        )
+                    }
+                }
+            }
         }
+            .onFailure {
+                when (it) {
+                    is HttpStatusException -> if (it.statusCode == 404) {
+                        list.add(
+                            Property(
+                                Icons.Default.Warning,
+                                "NOT FOUND",
+                            ) { Text("この作品は削除されたか、存在しません。") }
+                        )
+                    }
+                    else -> {
+                    }
+                }
+            }
 
         return {
             item { headerTitle("Pixiv Artwork Properties") }
@@ -266,6 +326,7 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
                     list.forEach { property -> property.view() }
                 }
             }
+            item { latestPosts() }
             super.extraComposable()
         }
     }
