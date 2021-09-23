@@ -19,6 +19,7 @@ import androidx.compose.ui.zIndex
 import content.Content
 import content.ImageMedia
 import content.Media
+import org.jsoup.HttpStatusException
 import java.awt.Desktop
 import java.net.URI
 import java.time.LocalDateTime
@@ -202,7 +203,7 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
         }
     }
 
-    val artwork: Artwork? by lazy { Artwork.build(id) }
+    val pixivClient: Result<Client> = Client.connect(id)
 
     override fun extraActions(): MutableList<Action> {
         val actions = super.extraActions()
@@ -218,53 +219,70 @@ class PixivIllustInspector(media: ImageMedia, val id: IllustId, val page: Int) :
 
     @OptIn(ExperimentalFoundationApi::class)
     override fun extraComposable(): LazyListScope.() -> Unit {
-        val artwork = artwork ?: return {}
-        val illust = artwork.illust[id] ?: return {}
-        val user = artwork.user[illust.userId] ?: return {}
+        var list = mutableListOf<Property>()
 
-        val list = mutableListOf(
-            Property(
-                Icons.Default.Person,
-                "作者",
-            ) { Text(user.name) },
-            Property(
-                Icons.Default.Title,
-                "タイトル",
-            ) { Text(illust.title) },
-            Property(
-                Icons.Default.Label,
-                "タグ",
-            ) {
-                val tags = illust.tags.tags.map { it.tag }.joinToString(" #", "#")
-                Text("$tags", color = Color(0x01, 0x96, 0xf9))
-            },
-            Property(
-                Icons.Default.Update,
-                "アップロード日",
-            ) {
-                val dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
-                val dt = LocalDateTime.ofInstant(illust.uploadDate.toInstant(), ZoneId.systemDefault())
-                Text(dt.format(dtf))
-            }
-        )
+        pixivClient.onSuccess {
+            val artwork = it.artwork
+            val illust = artwork.illust[id] ?: return {}
+            val user = artwork.user[illust.userId] ?: return {}
 
-        val desc = illust.descriptionDoc.toAnnotatedString()
-        if (desc.isNotEmpty()) {
-            list.add(
+            list = mutableListOf(
                 Property(
-                    Icons.Default.Message,
-                    "説明",
+                    Icons.Default.Person,
+                    "作者",
+                ) { Text(user.name) },
+                Property(
+                    Icons.Default.Title,
+                    "タイトル",
+                ) { Text(illust.title) },
+                Property(
+                    Icons.Default.Label,
+                    "タグ",
                 ) {
-                    ClickableText(desc) { offset ->
-                        desc.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                            .firstOrNull()?.let {
-                                val url = it.item
-                                Desktop.getDesktop().browse(URI(url))
-                            }
-                    }
+                    val tags = illust.tags.tags.map { it.tag }.joinToString(" #", "#")
+                    Text("$tags", color = Color(0x01, 0x96, 0xf9))
+                },
+                Property(
+                    Icons.Default.Update,
+                    "アップロード日",
+                ) {
+                    val dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")
+                    val dt = LocalDateTime.ofInstant(illust.uploadDate.toInstant(), ZoneId.systemDefault())
+                    Text(dt.format(dtf))
                 }
             )
+
+            val desc = illust.descriptionDoc.toAnnotatedString()
+            if (desc.isNotEmpty()) {
+                list.add(
+                    Property(
+                        Icons.Default.Message,
+                        "説明",
+                    ) {
+                        ClickableText(desc) { offset ->
+                            desc.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                                .firstOrNull()?.let {
+                                    val url = it.item
+                                    Desktop.getDesktop().browse(URI(url))
+                                }
+                        }
+                    }
+                )
+            }
         }
+            .onFailure {
+                when (it) {
+                    is HttpStatusException -> if (it.statusCode == 404) {
+                        list.add(
+                            Property(
+                                Icons.Default.Warning,
+                                "NOT FOUND",
+                            ) { Text("この作品は削除されたか、存在しません。") }
+                        )
+                    }
+                    else -> {}
+                }
+            }
 
         return {
             item { headerTitle("Pixiv Artwork Properties") }
