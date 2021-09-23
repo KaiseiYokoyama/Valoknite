@@ -29,6 +29,7 @@ class Client private constructor(id: IllustId) {
 
     fun getImageAsBytes(url: String): ByteArray {
         return session.url(url)
+            .referrer("https://www.pixiv.net/")
             .ignoreContentType(true)
             .execute()
             .bodyAsBytes()
